@@ -1,0 +1,3 @@
+-- Table definitions for the attendance tracker
+-- Every table should use CREATE TABLE IF NOT EXISTS so this
+-- file is safe to run every time the app starts
