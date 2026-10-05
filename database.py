@@ -24,3 +24,8 @@ def init_db():
         conn.commit()
     finally:
         conn.close()
+
+# Make sure the database and tables exist as soon as any page
+# imports this module. Python only runs this once per server
+# start, not on every Streamlit rerun
+init_db()
