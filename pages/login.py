@@ -26,3 +26,4 @@ with center:
         streamlit.text_input(label="Email")
         streamlit.text_input(label="Pasword")
         streamlit.button("Login", type="primary")
+        streamlit.page_link("./pages/signup.py", label="Create your account")
