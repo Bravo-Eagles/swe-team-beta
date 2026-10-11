@@ -8,3 +8,6 @@ dependencies = [
     "numpy>=2.5.3",
     "streamlit>=1.65.0",
 ]
+
+[tool.setuptools.packages.find]
+include = ["src*"]
