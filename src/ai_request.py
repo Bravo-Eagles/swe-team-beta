@@ -11,6 +11,7 @@ class AIRequest:
         error (bool, optional): Disables error catching
     """
     def __init__(self, key, url="https://rocky.cs.kent.edu/v1", debug=False, error=True):
+        if debug: print('[AIRequest] Initializing\n[AIRequest] Beginning configuration')
         self.url = url 
         self.key = key
         self.debug: bool = debug
@@ -27,9 +28,13 @@ class AIRequest:
         self.headers = {
             "Authorization": f"Bearer {self.key}"
         }
+    
+        if self.debug: print('[AIRequest] Configuration complete')
 
         self.getModels()
         self.setModel()
+
+        if self.debug: print('[AIRequest] Initialization complete')
 
     def getModels(self):
         """
@@ -38,12 +43,14 @@ class AIRequest:
         Returns:
             dict: List of models
         """
+        if self.debug: print('[AIRequest] getModels')
         self.models_response = requests.get(
             f"{self.url}/models",
             headers=self.headers,
             timeout=30,
         )
         self.models_response.raise_for_status()
+        if self.debug: print('[AIRequest] getModels complete')
         return self.models_response
 
     def setModel(self, modelId=None):
@@ -53,6 +60,7 @@ class AIRequest:
         Args:
             modelId (optional): Model ID as listed by getModels()
         """
+        if self.debug: print('[AIRequest] setModel')
         if modelId is not None:
             self.model = modelId
 
@@ -64,6 +72,7 @@ class AIRequest:
             previous_response_support = self.model_data["metadata"]["supports_previous_response_id"],
             streaming_support = self.model_data["metadata"]["supports_streaming"]
         )
+        if self.debug: print('[AIRequest] setModel complete')
 
     def send(self, input, instructions=None):
         """
@@ -76,6 +85,7 @@ class AIRequest:
         Returns:
             dict: API response
         """
+        if self.debug: print('[AIRequest] send')
         self.payload = {
             "model": self.capabilities['name'],
             "max_output_tokens": self.max_output,
@@ -98,5 +108,6 @@ class AIRequest:
         response = requests.post(f'{self.url}/responses', headers=self.headers, json=self.payload, timeout=self.timeout)
         response.raise_for_status()
 
+        if self.debug: print('[AIRequest] send complete')
         return response
 
