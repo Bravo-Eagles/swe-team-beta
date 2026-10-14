@@ -1,3 +1,4 @@
 uv.lock
+.env
 *.db
 __pycache__/
