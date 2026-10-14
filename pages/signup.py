@@ -33,7 +33,8 @@ with center:
             streamlit.text_input(label="Last Name")
 
         #KSU Email and Password entry
-        streamlit.text_input(label="Email")
-        streamlit.text_input(label="Pasword", type="password")
+        user_email = streamlit.text_input(label="Email")
+        reg_password = streamlit.text_input(label="Pasword", type="password")
+        conf_password = streamlit.text_input(label="Confirm Password", type="password")
         streamlit.button("Register", type="primary")
         streamlit.page_link("./pages/login.py", label="or Login")
