@@ -1,9 +1,9 @@
 import sqlite3
 from pathlib import Path
 
-# Build paths relative to this file, so they work no matter
-# which folder the app is started from
-BASE_DIR = Path(__file__).parent
+# database.py lives in src/, so go up one level to reach the
+# project root, where schema.sql and attendance.db live.
+BASE_DIR = Path(__file__).parent.parent
 DB_PATH = BASE_DIR / "attendance.db"
 SCHEMA_PATH = BASE_DIR / "schema.sql"
 
