@@ -23,6 +23,7 @@ if "import_bitwiseFlag" not in streamlit.session_state:
     streamlit.session_state.import_dateRange = "" # Stores the cell range that contains dates
     streamlit.session_state.import_nameRange = "" # Stores the cell range that contains names
     streamlit.session_state.import_bitwiseFlag = 0
+    streamlit.session_state.import_selectionData = "" # A tmp holder for dataframe selection
 # 0 = Whether a file has been uploaded
 # 1 = Import is XLSX
 # 2 = Import is CSV
@@ -44,6 +45,7 @@ absentString = streamlit.session_state.import_absentString
 dateRange = streamlit.session_state.import_dateRange
 nameRange = streamlit.session_state.import_nameRange
 bitwiseFlag = streamlit.session_state.import_bitwiseFlag
+selectionData = streamlit.session_state.import_selectionData
 
 
 ### Helper functions
@@ -54,12 +56,18 @@ def save():
     streamlit.session_state.import_dateRange = dateRange
     streamlit.session_state.import_nameRange = nameRange
     streamlit.session_state.import_bitwiseFlag = bitwiseFlag
+    streamlit.session_state.import_selectionData = selectionData
 def back():
     global bitwiseFlag
     if bitwiseFlag & (1 << 4):
         bitwiseFlag = 0
     save()
     streamlit.rerun()
+def captureDataSelection():
+    selectionData = streamlit.session_state.import_dataframe
+    print(selectionData)
+    save()
+
 
 ### Real code (Congrats! You survived)
 if not (bitwiseFlag & 1): # If file hasn't been uploaded
@@ -92,18 +100,33 @@ if not (bitwiseFlag & 1): # If file hasn't been uploaded
             streamlit.rerun()
 
 elif bitwiseFlag & (1 << 4): # Stage 1
-    streamlit.write(spreadsheet)
-    streamlit.write("Alright! Now we need your help! Use the boxes below so we can import your file correctly.")
-    
-    dateRange = streamlit.text_input("Provide the range of cells that contain the date", "Type here")
-    nameRange = streamlit.text_input("Provide the range of cells that contain student's names", "Type here")
-    presentString = streamlit.text_input("Text that marks students as present", "Type here")
-    absentString = streamlit.text_input("Text that marks students as absent", "Type here")
-    if streamlit.button("Back"):
-        back()
-    if streamlit.button("Process Data"):
-        pass
-        bitwiseFlag ^= (1 << 4) | (1 << 11) # Ends stage 1 | Start stage 2
+    inputDefaultText = "Select values from the spreadsheet above"
+    streamlit.write("Alright! Now we need your help! Select cells in the spreadsheet. When the selection matches an option below hit Set to lock it in.")
+    streamlit.dataframe(spreadsheet, key="import_dataframe", on_select=captureDataSelection, selection_mode=["multi-cell", "multi-column", "multi-row"])
+    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom"):
+        dateRangeBox = streamlit.text_input("Provide the range of cells that contain the date", inputDefaultText)
+        if streamlit.button("Set", key="setDatesButton"):
+            dateRange = selectionData
+    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom"):
+        nameRangeBox = streamlit.text_input("Provide the range of cells that contain student's names", inputDefaultText)
+        if streamlit.button("Set", key="setNamesButton"):
+            nameRange = selectionData
+            
+    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom"):
+        presentStringBox = streamlit.text_input("Text that marks students as present (Expects one cell)", inputDefaultText)
+        if streamlit.button("Set", key="setPresentButton"):
+            pass
+    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom"):
+        absentStringBox = streamlit.text_input("Text that marks students as absent (Expects one cell)", inputDefaultText)
+        if streamlit.button("Set", key="setAbsentButton"):
+            pass
+
+    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom"):
+        if streamlit.button("Back"):
+            back()
+        if streamlit.button("Process Data"):
+            pass
+            bitwiseFlag ^= (1 << 4) | (1 << 11) # Ends stage 1 | Start stage 2
 
 elif bitwiseFlag & (1 << 11): # Stage 2
     pass
