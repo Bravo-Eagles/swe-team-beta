@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS student(
     middle_name VARCHAR(70),
     last_name VARCHAR(70) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL
+    password_hash VARCHAR(255) NOT NULL,
+    active TINYINT NOT NULL
 );
 
 -- A class that could exist
