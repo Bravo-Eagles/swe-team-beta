@@ -59,5 +59,7 @@ CREATE TABLE IF NOT EXISTS enrolled(
 CREATE TABLE IF NOT EXISTS attendance(
     scheduled_id BIGINT NOT NULL REFERENCES scheduled(id),
     student_id BIGINT NOT NULL REFERENCES student(id),
+    check_in_time DATE NOT NULL,
+    is_delted BOOLEAN NOT NULL DEFAULT 0,
     PRIMARY KEY (scheduled_id, student_id)
 );
