@@ -1,5 +1,7 @@
 uv.lock
+test_crud.py
 .env
 .venv
 *.db
+.vscode/
 __pycache__/
