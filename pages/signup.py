@@ -1,7 +1,5 @@
 import streamlit
 
-# This is a mockup page lacking functionality to act as a placeholder
-
 streamlit.set_page_config(initial_sidebar_state="collapsed")
 
 # Hide the sidebar and its collapse/expand control entirely
