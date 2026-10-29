@@ -4,10 +4,17 @@
 
 -- Account Table
 CREATE TABLE IF NOT EXISTS accounts(
-    id BIGINT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(255) NOT NULL DEFAULT("STUDENT")
+    role VARCHAR(255) NOT NULL DEFAULT('STUDENT')
+);
+
+--Login Sessions
+CREATE TABLE IF NOT EXISTS sessions(
+    token_hash TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL UNIQUE REFERENCES accounts(id) ON DELETE CASCADE,
+    expires TEXT NOT NULL
 );
 
 -- Teacher Account
