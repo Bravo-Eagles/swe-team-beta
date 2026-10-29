@@ -3,6 +3,9 @@ import io
 from html import escape
 
 import streamlit as st
+from src.passwords import require_login
+#require Login
+require_login()
 
 
 st.set_page_config(

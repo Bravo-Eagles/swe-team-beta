@@ -1,6 +1,9 @@
 
 import streamlit as st
 from datetime import datetime
+from src.passwords import require_login
+#require Login
+require_login()
 
 st.title("Exit Slip")
 st.write("Submit your response to today's class question.")
