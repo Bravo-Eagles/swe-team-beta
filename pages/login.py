@@ -36,13 +36,10 @@ with center:
 
         if submitted:
             if not email or not password:
-                print("Not email")
                 streamlit.error("Please enter your email and password.")
             elif login_user(email, password):
-                print("switch page")
                 streamlit.switch_page(HOME_PAGE)
             else:
-                print("Invalid email")
                 streamlit.error("Invalid email or password.")
 
         streamlit.page_link("./pages/signup.py", label="Create your account")
