@@ -31,8 +31,7 @@ def verify_tap(picc_data_hex: str, cmac_hex: str, key: bytes) -> tuple[str, int]
     if len(picc_data) != 16 or len(received_cmac) != 8:
         raise ValueError("picc_data or cmac has the wrong length")
 
-    # The spec uses AES-CBC with an all-zero IV; the tag adds random
-    # bytes to the data instead, so every link still looks different.
+    # The tag adds random bytes to the data instead, so every link still looks different.
     plain = AES.new(key, AES.MODE_CBC, iv=bytes(16)).decrypt(picc_data)
 
     # 0xC7 = "chip ID + counter follow". Anything else means a wrong key.
@@ -43,7 +42,7 @@ def verify_tap(picc_data_hex: str, cmac_hex: str, key: bytes) -> tuple[str, int]
     counter_bytes = plain[8:11]
     counter = int.from_bytes(counter_bytes, "little")
 
-    # The tag signs with a one-time key made from our key + chip ID +
+    # The tag signs with a one time key made from our key + chip ID +
     # counter. 3CC300010080 is a fixed label.
     sv2 = bytes.fromhex("3CC300010080") + uid + counter_bytes
     mac = CMAC.new(key, ciphermod=AES)

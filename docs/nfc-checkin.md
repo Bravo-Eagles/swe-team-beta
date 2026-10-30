@@ -6,7 +6,7 @@ Typical attendance software tries to use a QR code or link to have students prov
 
 Our solution is an NFC tag that the teacher can deploy. Each time a student taps it their phone, the tag create a brand new link that only works once. Forwarding it doesn't matter because by the time the friend opens it, the link has already been used.
 
-Students don't need an app. Any NFC-capable phone opens the link in the browser automatically.
+Students don't need an app. Any NFC capable phone opens the link in the browser automatically.
 
 ## How a tap works
 
