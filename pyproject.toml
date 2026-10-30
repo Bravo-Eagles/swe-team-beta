@@ -8,6 +8,7 @@ dependencies = [
     "bcrypt>=5.0.0",
     "matplotlib>=3.11.2",
     "numpy>=2.5.3",
+    "pycryptodome>=4.2.0",
     "streamlit>=1.65.0",
 ]
 
