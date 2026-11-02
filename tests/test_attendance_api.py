@@ -11,6 +11,7 @@ from src import database
 
 class AttendanceApiTests(unittest.TestCase):
     def setUp(self):
+        """Create an isolated SQLite database with a class and enrolled students."""
         self.temp_dir = tempfile.TemporaryDirectory()
         self.db_path = Path(self.temp_dir.name) / "attendance.db"
         self.db_path_patch = patch.object(database, "DB_PATH", self.db_path)
@@ -55,10 +56,12 @@ class AttendanceApiTests(unittest.TestCase):
                 )
 
     def tearDown(self):
+        """Restore the database path and remove the temporary database."""
         self.db_path_patch.stop()
         self.temp_dir.cleanup()
 
     def test_lists_class_roster_and_saves_presence_and_absence(self):
+        """List the roster and save, remove, and restore an attendance record."""
         offerings = attendance_api.list_class_offerings()
         self.assertEqual(len(offerings), 1)
         self.assertEqual(offerings[0]["teaching_id"], 40)
@@ -103,6 +106,7 @@ class AttendanceApiTests(unittest.TestCase):
         self.assertEqual(attendance_row["is_delted"], 0)
 
     def test_rejects_students_not_enrolled_in_the_class(self):
+        """Reject attendance updates for students outside the class roster."""
         with self.assertRaisesRegex(ValueError, "enrolled in this class"):
             attendance_api.save_attendance_records(
                 50,
@@ -116,10 +120,12 @@ class AttendanceApiTests(unittest.TestCase):
             )
 
     def test_rejects_a_meeting_from_another_class(self):
+        """Reject roster lookups when the meeting belongs to another offering."""
         with self.assertRaisesRegex(ValueError, "does not belong to this class"):
             attendance_api.list_students_for_session(41, 50)
 
     def test_creates_a_scheduled_meeting(self):
+        """Create a meeting and confirm it appears in the offering's schedule."""
         meeting_id = attendance_api.create_scheduled_session(
             40,
             date(2026, 10, 2),

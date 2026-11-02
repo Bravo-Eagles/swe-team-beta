@@ -13,6 +13,16 @@ class AttendanceEdit(TypedDict):
 
 
 def create_attendance_log(scheduled_id, student_id, time):
+    """Create an attendance record and return its database row ID.
+
+    Args:
+        scheduled_id: ID of the scheduled class meeting.
+        student_id: ID of the student being checked in.
+        time: Check-in date and time to store.
+
+    Returns:
+        int | None: The inserted row ID.
+    """
     query = "INSERT INTO attendance (scheduled_id, student_id, check_in_time) VALUES (?, ?, ?);"
     with closing(db.get_connection()) as conn:
         with conn:
@@ -21,6 +31,16 @@ def create_attendance_log(scheduled_id, student_id, time):
 
 
 def update_attendance_log(check_in_time, student_id, scheduled_id):
+    """Update a student's check-in time and restore their attendance record.
+
+    Args:
+        check_in_time: Updated check-in date and time.
+        student_id: ID of the student being updated.
+        scheduled_id: ID of the scheduled class meeting.
+
+    Returns:
+        int: Number of attendance rows updated.
+    """
     query = """
         UPDATE attendance
         SET check_in_time = ?, is_delted = 0
@@ -33,6 +53,15 @@ def update_attendance_log(check_in_time, student_id, scheduled_id):
 
 
 def select_attendance_log(student_id=None, scheduled_id=None):
+    """Return attendance records matching the optional student and meeting IDs.
+
+    Args:
+        student_id: Optional student ID to filter by.
+        scheduled_id: Optional scheduled meeting ID to filter by.
+
+    Returns:
+        list[sqlite3.Row]: Matching attendance records.
+    """
     query = "SELECT * FROM attendance WHERE 1=1"
     params = []
 
@@ -49,6 +78,15 @@ def select_attendance_log(student_id=None, scheduled_id=None):
 
 
 def delete_attendance_log(student_id, scheduled_id):
+    """Soft-delete a student's attendance record for a scheduled meeting.
+
+    Args:
+        student_id: ID of the student whose record should be deleted.
+        scheduled_id: ID of the scheduled class meeting.
+
+    Returns:
+        int: Number of attendance rows marked deleted.
+    """
     query = """
         UPDATE attendance
         SET is_delted = 1
@@ -61,6 +99,11 @@ def delete_attendance_log(student_id, scheduled_id):
 
 
 def list_class_offerings() -> list[sqlite3.Row]:
+    """Return class offerings with their course, term, and year details.
+
+    Returns:
+        list[sqlite3.Row]: Class offerings ordered by class and term.
+    """
     query = """
         SELECT
             teaching.id AS teaching_id,
@@ -77,6 +120,14 @@ def list_class_offerings() -> list[sqlite3.Row]:
 
 
 def list_scheduled_sessions(teaching_id: int) -> list[sqlite3.Row]:
+    """List scheduled meetings for a class offering, newest first.
+
+    Args:
+        teaching_id: ID of the class offering.
+
+    Returns:
+        list[sqlite3.Row]: Scheduled meetings for the offering.
+    """
     query = """
         SELECT id, date, start_time, end_time
         FROM scheduled
@@ -90,6 +141,18 @@ def list_scheduled_sessions(teaching_id: int) -> list[sqlite3.Row]:
 def list_students_for_session(
     teaching_id: int, scheduled_id: int
 ) -> list[sqlite3.Row]:
+    """Return an offering's enrolled students and attendance for a meeting.
+
+    Args:
+        teaching_id: ID of the class offering.
+        scheduled_id: ID of a meeting belonging to that offering.
+
+    Returns:
+        list[sqlite3.Row]: Enrolled students with present status and check-in time.
+
+    Raises:
+        ValueError: If the meeting does not exist or belongs to another offering.
+    """
     query = """
         SELECT
             student.id AS student_id,
@@ -120,6 +183,19 @@ def list_students_for_session(
 def create_scheduled_session(
     teaching_id: int, session_date: date, start_time: time
 ) -> int:
+    """Add a scheduled meeting to an existing class offering.
+
+    Args:
+        teaching_id: ID of the class offering.
+        session_date: Date of the meeting.
+        start_time: Meeting start time.
+
+    Returns:
+        int: ID assigned to the new meeting.
+
+    Raises:
+        ValueError: If the class offering does not exist.
+    """
     with closing(db.get_connection()) as conn:
         with conn:
             conn.execute("BEGIN IMMEDIATE")
@@ -145,6 +221,19 @@ def create_scheduled_session(
 def save_attendance_records(
     scheduled_id: int, records: list[AttendanceEdit]
 ) -> None:
+    """Save present or absent statuses for enrolled students in one meeting.
+
+    Present records are inserted or restored with their check-in time; absent
+    records are soft-deleted so their history remains in the database.
+
+    Args:
+        scheduled_id: ID of the scheduled class meeting.
+        records: Student IDs, attendance statuses, and check-in times to save.
+
+    Raises:
+        ValueError: If the meeting is missing, a student is not enrolled, a
+            student is repeated, or an attendance value is invalid.
+    """
     normalized_records: list[tuple[int, bool, str | None]] = []
     seen_student_ids: set[int] = set()
 
