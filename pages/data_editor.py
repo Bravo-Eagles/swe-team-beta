@@ -6,6 +6,7 @@ from api import attendance_api
 
 
 def _offering_label(offering) -> str:
+    """Build the selector label for a class offering."""
     return (
         f"{offering['class_name']} ({offering['course_id']}) - "
         f"{offering['semester']} {offering['year']}"
@@ -13,10 +14,12 @@ def _offering_label(offering) -> str:
 
 
 def _session_label(session) -> str:
+    """Build the selector label for a scheduled meeting."""
     return f"{session['date']} at {session['start_time']}"
 
 
 def _check_in_time_label(value: str) -> str:
+    """Format a stored check-in timestamp for display in the editor."""
     try:
         return datetime.fromisoformat(value).strftime("%Y-%m-%d %H:%M")
     except ValueError:
