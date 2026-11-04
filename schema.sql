@@ -2,14 +2,28 @@
 -- Every table should use CREATE TABLE IF NOT EXISTS so this
 -- file is safe to run every time the app starts
 
+-- Account Table
+CREATE TABLE IF NOT EXISTS accounts(
+    id INTEGER PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(255) NOT NULL DEFAULT('STUDENT')
+);
+
+--Login Sessions
+CREATE TABLE IF NOT EXISTS sessions(
+    token_hash TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL UNIQUE REFERENCES accounts(id) ON DELETE CASCADE,
+    expires TEXT NOT NULL
+);
+
 -- Teacher Account
 CREATE TABLE IF NOT EXISTS teacher(
     id BIGINT PRIMARY KEY,
     first_name VARCHAR(70) NOT NULL,
     middle_name VARCHAR(70),
     last_name VARCHAR(70) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL
+    account_id NOT NULL REFERENCES accounts(id)
 );
 
 -- Student Account
@@ -18,8 +32,7 @@ CREATE TABLE IF NOT EXISTS student(
     first_name VARCHAR(70) NOT NULL,
     middle_name VARCHAR(70),
     last_name VARCHAR(70) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
+    account_id NOT NULL REFERENCES accounts(id),
     active TINYINT NOT NULL
 );
 

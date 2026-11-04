@@ -1,5 +1,8 @@
 import streamlit as st            # as st gives streamlit a shorter name "st"
 from datetime import datetime     #datetime class from pythons datetime module
+from src.passwords import require_login
+#require Login
+require_login()
                                 
 st.title("KSU Attendance Tracker")     # creates large title at the top of webpage
 st.header("Student Check-In")          # creates a smaller heading underneath the title

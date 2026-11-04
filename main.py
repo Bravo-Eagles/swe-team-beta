@@ -1,5 +1,8 @@
 import streamlit, sys
 
+from src.passwords import require_login
+#require Login
+require_login()
 ## Global Variable
 ARG_Count: int = len(sys.argv)
 ARG_Flags: int = 0
