@@ -9,14 +9,20 @@ require_login()
 courses = get_classes()
 
 st.title("Classes")
-st.write("Classes you are enrolled in.")
+st.write("Classes you teach.")
 
-for course in courses:
-  with st.container(border=True):
-      st.subheader(f"{course["name"]}")
-      st.write(f"{course["course_id"]}")
-      if st.button("Go to Analytics", key=f"btn_{course["id"]}"):
-        st.switch_page("pages/class.py")
+cols = st.columns(2)
+
+for index, course in enumerate(courses):
+
+  col_target = cols[index % 2]
+
+  with col_target:
+    with st.container(border=True):
+        st.subheader(f"{course["name"]}")
+        st.write(f"{course["course_id"]}")
+        if st.button("View Class", key=f"btn_{course["id"]}"):
+          st.switch_page("pages/class.py", query_params={"courseID": f"{course["course_id"]}"})
 
 if(st.button("Create New Class")):
   create_class("Test Class", 12345)
