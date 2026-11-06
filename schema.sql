@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS sessions(
 
 -- Teacher Account
 CREATE TABLE IF NOT EXISTS teacher(
-    id BIGINT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     first_name VARCHAR(70) NOT NULL,
     middle_name VARCHAR(70),
     last_name VARCHAR(70) NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS teacher(
 
 -- Student Account
 CREATE TABLE IF NOT EXISTS student(
-    id BIGINT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     first_name VARCHAR(70) NOT NULL,
     middle_name VARCHAR(70),
     last_name VARCHAR(70) NOT NULL,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS student(
 
 -- A class that could exist
 CREATE TABLE IF NOT EXISTS class(
-    id BIGINT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     name VARCHAR(70) NOT NULL,
     course_id VARCHAR(10) NOT NULL
 );
