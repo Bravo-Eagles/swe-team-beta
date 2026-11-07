@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS student(
 CREATE TABLE IF NOT EXISTS class(
     id INTEGER PRIMARY KEY,
     name VARCHAR(70) NOT NULL,
-    course_id VARCHAR(10) NOT NULL
+    course_id VARCHAR(10) NOT NULL UNIQUE
 );
 
 -- A class that is taught

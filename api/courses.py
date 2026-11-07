@@ -30,13 +30,19 @@ def get_classes(class_id=None):
     params = []
 
     if class_id is not None:
-        query += " AND id = ?"
+        query += " AND course_id = ?"
         params.append(class_id)
 
     try:
         with db.get_connection() as conn:
             cursor = conn.execute(query, params)
-            return cursor.fetchall()
+
+            if class_id is not None: #If searching by class_id only return one row
+                print("ONLY ONE")
+                return cursor.fetchone()
+            else:
+                return cursor.fetchall()
+            
     except sqlite3.Error as e:
         print(f"An error has occured: {e}")
 

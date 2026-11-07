@@ -5,6 +5,7 @@ from api.courses import create_class
 from api.courses import get_classes
 #require Login
 require_login()
+st.query_params.clear() #Clear query params, useful if prof goes back a page from a class
 
 courses = get_classes()
 
