@@ -118,7 +118,7 @@ with st.form("attendance_editor"):
 
 if save_attendance:
     records = []
-    for row in edited_rows.to_dict(orient="records"):
+    for row in edited_rows:
         attendance_status = row["attendance"]
         if attendance_status not in ("Present", "Absent"):
             st.error("Choose Present or Absent for every student.")
