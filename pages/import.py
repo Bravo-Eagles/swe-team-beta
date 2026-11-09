@@ -24,6 +24,8 @@ require_login()
 # Stage 3 has no way to deal with multiple matches, so it just picks one. FIX THIS
 # Stage 3 add better defaults for handling date
 # Stage 3 add failsafe for database connection
+# Fix order of bitwiseFlag
+# Make the initialization of the session_state able to be activated by flag. So you can reset for next import
 
 # Local Variables (Accessable across entire file)
 # Streamlit forgets on each pass of the script unless you use st.session_state
@@ -57,7 +59,6 @@ if "import_bitwiseFlag" not in streamlit.session_state:
 # 14 = Format skipper active
 # 15 = Format skipper end
 # 16 = Stage 3
-# 17 = Ran database commands
 # 20 = Import to database successful
 #  = User confirmed data
 
@@ -102,10 +103,18 @@ def back():
         del (streamlit.session_state.import_dataframe, streamlit.session_state.import_spreadsheet,
              streamlit.session_state.import_dateRange, streamlit.session_state.import_nameRange, 
              streamlit.session_state.import_presentString, streamlit.session_state.import_absentString)
-    if bitwiseFlag & (1 << 10): # Stage 2 -> Stage 1
+    elif bitwiseFlag & (1 << 10): # Stage 2 -> Stage 1
         del (streamlit.session_state.import_nameFormatOrder, streamlit.session_state.import_dateFormatOrder)
         bitwiseFlag &= ~((1<<5)|(1<<6)|(1<<7)|(1<<8)|(1<<9)|(1<<10)) # Pos 5-10 are set to 0, 
         bitwiseFlag |= (1 << 4)
+    elif bitwiseFlag & (1<<16): # Stage 3 -> Stage 2
+        if bitwiseFlag & (1<<20):
+            bitwiseFlag = 0    
+            nameFormatOrder = [] # Clears list
+            dateFormatOrder = [] # Clears list
+            update()
+        bitwiseFlag &= ~((1<<16)|(1<<20))
+        bitwiseFlag |= (1 << 10)
     update()
 # Captures selection from import_dataframe
 def captureDataSelection(): 
@@ -377,8 +386,6 @@ elif bitwiseFlag & (1 << 16): # Stage 3 - Put the stuff in the database
     streamlit.progress(1)
     conn = get_connection()
     try:
-        if not bitwiseFlag & (1 << 17):
-            bitwiseFlag |= (1 << 17)
             formatSkipper = ""
             for rowPos, entry in spreadsheet.iterrows():
                 # Import name. If name already exists just get its id
@@ -411,6 +418,7 @@ elif bitwiseFlag & (1 << 16): # Stage 3 - Put the stuff in the database
                 if first_name is None or last_name is None:    
                     formatSkipper = f"Error: For a student to exist in the database they must have both a first and last name. One is missing or malformed. Please try again.  \nFirst: {first_name}  \nLast:{last_name}"
                     raise Exception("First and Last name are required")
+                print(1)
                 if middle_name is None:
                     student_id = conn.execute(
                         """
@@ -429,6 +437,7 @@ elif bitwiseFlag & (1 << 16): # Stage 3 - Put the stuff in the database
                     ) 
 
                 student_id = student_id.fetchone()
+                print(2)
                 if student_id is None:
                     student_id = conn.execute(
                              """
@@ -458,6 +467,7 @@ elif bitwiseFlag & (1 << 16): # Stage 3 - Put the stuff in the database
                             (classId, student_id)
                     )  
                     enrollment_status = enrollment_status.lastrowid
+                print(3)
                 # Get the date format
                 date: str = str(entry[dateRange["columns"][0]])
                 date_month = None
@@ -492,6 +502,7 @@ elif bitwiseFlag & (1 << 16): # Stage 3 - Put the stuff in the database
                 # time 00:00:00
                 # date YYYY-MM-DD
                 # fstring formater :02d - Allows for padding zeros. Look for more of these later
+                print(4)
                 scheduledClass = conn.execute(
                     """
                     SELECT * FROM scheduled 
@@ -533,6 +544,7 @@ elif bitwiseFlag & (1 << 16): # Stage 3 - Put the stuff in the database
 
                 
                 conn.commit()
+                bitwiseFlag |= (1<<20) # Import worked
     except Exception as error:
         if formatSkipper == "":
             streamlit.error("Unknown error. Please contact developers. Issues can be sent to https://github.com/Bravo-Eagles/swe-team-beta/issues  \n Just describe the problem and provide the error data from below.")
@@ -544,9 +556,6 @@ elif bitwiseFlag & (1 << 16): # Stage 3 - Put the stuff in the database
     else:
         if streamlit.button("Import more?"):
             back()
-        # REMOVE THIS IS FOR TESTING
-        if streamlit.button("Rerun"):
-            bitwiseFlag &= ~(1<<17)
         streamlit.success("Import complete")
     finally:
         conn.close()
