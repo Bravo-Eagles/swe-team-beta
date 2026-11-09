@@ -1,0 +1,25 @@
+name: Will Streamlit run?
+on: [push]
+
+jobs:
+  streamlit-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Installing uv (Python package manager)
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Cloning repo
+        uses: actions/checkout@v6
+
+      - name: Installing python packages with uv
+        run: uv sync
+
+      - name: Checking if src files have needed dependencies
+        run: python src/*
+
+      - name: Running streamlit
+        run: uv run streamlit run --server.headless True main.py &
+
+      - name: Checking if website is avalible on port 8501 
+        run: curl -is http://localhost:8501/_stcore/health
+
