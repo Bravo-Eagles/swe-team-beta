@@ -12,7 +12,6 @@ require_login()
         # Get date location(s)
         # Get name location(s)
     # Stage 2 - Display data for user to confirm/modify
-        # Allow user to change/enter additional info
         # Allow user to specify how data is stored
             # Ex: How is a name stored? What order? Is there a delimiter? Multiple rows?
     # Stage 3 - Load into database
@@ -49,8 +48,8 @@ if "import_bitwiseFlag" not in streamlit.session_state:
 # 13 = Seen '{'
 # 14 = Format skipper active
 # 15 = Format skipper end
-
-# 20 = Stage 3
+# 16 = Stage 3
+# 20 = Import to database successful
 #  = User confirmed data
 
 
@@ -332,28 +331,39 @@ elif bitwiseFlag & (1 << 10): # Stage 2 - Figure out formatting
             nameFormatOrder.append(formatSkipper)
             formatSkipper = ""
             bitwiseFlag &= ~((1<<14)|(1<<15))
-        for datePos, char in enumerate(dateFormat):
-            char = char.upper()
-            if char == '-':
-                pass
-            elif char == 'M':
-                pass
-            elif char == 'Y':
-                pass
-            elif char == 'D':
-                pass
-            else:
-                streamlit.error(f"Error: Date formating invalid character \'{char}\' at position {datePos}")
+    # parse date formatting
+    formatSkipper = ""
+    bitwiseFlag &= ~((1<<14)|(1<<15))
+    for datePos, char in enumerate(dateFormat):
+        char = char.upper()
+        if char == 'M':
+            bitwiseFlag |= (1<<15)
+            dateFormatOrder.append(0)
+        elif char == 'Y':
+            bitwiseFlag |= (1<<15)
+            dateFormatOrder.append(1)
+        elif char == 'D':
+            bitwiseFlag |= (1<<15)
+            dateFormatOrder.append(2)
+        else:
+            bitwiseFlag |= (1<<14) 
+            formatSkipper = f"{formatSkipper}{char}"
+        if bitwiseFlag & (1<<15) and formatSkipper != "":
+            dateFormatOrder.append(formatSkipper)
+            formatSkipper = ""
+            bitwiseFlag &= ~((1<<14)|(1<<15))
+
     save()
 
     with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom"):
         if streamlit.button("Back"):
             back()
         if streamlit.button("Process Data") and bitwiseFlag & (1<<11):
-            bitwiseFlag ^= (1 << 10) | (1 << 20) # Ends stage 2 | Start stage 3
+            bitwiseFlag ^= (1 << 10) | (1 << 16) # Ends stage 2 | Start stage 3
             update()
 
-elif bitwiseFlag & (1 << 20): # Stage 3 - Put the stuff in the database
+elif bitwiseFlag & (1 << 16): # Stage 3 - Put the stuff in the database
+    print(nameFormatOrder, dateFormatOrder)
     streamlit.progress(1)
     for entry in spreadsheet:
         streamlit.write(entry)
