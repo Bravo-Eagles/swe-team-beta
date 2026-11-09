@@ -116,3 +116,42 @@ def get_teaching_section(teaching_id, teacher_id):
     except sqlite3.Error as e:
         print(f"An error occurred in get_teaching_section: {e}")
         return None
+
+def create_section(teacher_id, semester, year, class_id=None, class_name=None, course_id=None):
+    """
+    Creates a section in the teaching table for a teacher
+
+    Pass class_id to use an existing class, or class_name + course_id to
+    create a new class in the same transaction.
+    Returns the new teaching id. Raises ValueError for bad input/duplicates.
+    """
+    print("Running Create Section")
+    semester = (semester or "").strip()
+    if not semester or not year:
+        print("Semester and year are required")
+        raise ValueError("Semester and year are required.")
+
+    with db.get_connection() as conn:
+        if class_id is None:
+            class_name = (class_name or "").strip()
+            course_id = (course_id or "").strip().upper()
+            if not class_name or not course_id:
+                raise ValueError("Class name and course ID are required.")
+            if conn.execute("SELECT 1 FROM class WHERE course_id = ?", (course_id,)).fetchone():
+                raise ValueError(f"A class with course ID {course_id} already exists. Pick it from the list instead.")
+            class_id = conn.execute(
+                "INSERT INTO class (name, course_id) VALUES (?, ?)",
+                (class_name, course_id),
+            ).lastrowid
+
+        if conn.execute(
+            """SELECT 1 FROM teaching
+               WHERE teacher_id = ? AND class_id = ? AND semester = ? AND year = ?""",
+            (teacher_id, class_id, semester, year),).fetchone():
+                raise ValueError("You already teach this class in that semester.")
+
+        return conn.execute(
+            """INSERT INTO teaching (teacher_id, class_id, semester, year)
+               VALUES (?, ?, ?, ?)""",
+            (teacher_id, class_id, semester, year),
+        ).lastrowid

@@ -1,8 +1,8 @@
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, date
 from src.passwords import require_login
 from api.courses import create_class
-from api.courses import get_classes, get_teaching_classes, get_teacher_id
+from api.courses import get_classes, get_teaching_classes, get_teacher_id, create_section
 from src.sidebar import sidebar
 
 #require Login
@@ -24,20 +24,40 @@ st.write("Classes you teach.")
 cols = st.columns(2)
 
 #Class Creation Modal
-@st.dialog("Create a Class")
-def create_class_modal():
-    with st.form("class_form", clear_on_submit=True, enter_to_submit=False):
-        new_class_name = st.text_input("Class Name")
-        course_id = st.text_input("Course ID (e.g. CS101)")
-        submitted = st.form_submit_button("Submit")
+SEMESTERS = ["Spring", "Summer", "Fall", "Winter"]
 
-    if submitted:
-        if not new_class_name.strip() or not course_id.strip():
-            st.error("Both fields are required.")
-        elif create_class(new_class_name.strip(), course_id.strip()) is None:
-            st.error("Could not create the class. That Course ID may already exist.")
+@st.dialog("Create a Section")
+def create_class_modal():
+    classes = {c["id"]: c for c in get_classes()}
+
+    def class_label(class_id):
+        if class_id is None:
+            return "New class..."
+        c = classes[class_id]
+        return f"{c['course_id']} - {c['name']}"
+
+    #Unpacks classes into a list
+    chosen = st.selectbox("Class", options=[None, *classes], format_func=class_label)
+
+    new_name = new_course_id = None
+    if chosen is None:
+        new_name = st.text_input("Class name")
+        new_course_id = st.text_input("Course ID (e.g. CS101)")
+
+    col1, col2 = st.columns(2)
+    semester = col1.selectbox("Semester", SEMESTERS)
+    year = col2.number_input("Year", min_value=2000, max_value=2100,
+                             value=date.today().year, step=1)
+
+    if st.button("Create section"):
+        try:
+            create_section(teacher_id, semester, year, class_id=chosen,
+                           class_name=new_name, course_id=new_course_id)
+        except ValueError as e:
+            st.error(str(e))
         else:
-            st.success("Class created.")
+            st.session_state["flash"] = "Section created."
+            st.rerun()  # closes the dialog and refreshes the list
 
 
 

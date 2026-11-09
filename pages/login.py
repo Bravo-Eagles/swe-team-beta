@@ -3,7 +3,7 @@ from src.passwords import handle_login, current_user, login_user
 
 
 #Route to dashboard, where login redirects too
-HOME_PAGE = "./pages/main.py"
+HOME_PAGE = "./main.py"
 
 streamlit.set_page_config(initial_sidebar_state="collapsed")
 

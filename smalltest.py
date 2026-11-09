@@ -123,7 +123,7 @@ def main():
                     deleted = 0 if deleted_flagged else 1  # flag exactly one row as soft-deleted
                     deleted_flagged = True
                     # NOTE: column is spelled "is_delted" in the schema
-                    cur.execute("INSERT INTO attendance (scheduled_id, student_id, check_in_time, is_delted) VALUES (?,?,?,?)",
+                    cur.execute("INSERT INTO attendance (scheduled_id, student_id, check_in_time, is_deleted) VALUES (?,?,?,?)",
                                 (sched_id, s + 1, check_in.isoformat(sep=" ", timespec="seconds"), deleted))
 
     conn.commit()
