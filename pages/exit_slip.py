@@ -2,8 +2,10 @@
 import streamlit as st
 from datetime import datetime
 from src.passwords import require_login
+from src.sidebar import sidebar
 #require Login
 require_login()
+sidebar()
 
 st.title("Exit Slip")
 st.write("Submit your response to today's class question.")

@@ -4,9 +4,11 @@ from api.courses import get_classes
 from api.courses import get_class_roster, get_teacher_id, get_teaching_section
 from api.attendance_api import create_scheduled_session, list_scheduled_sessions, list_students_for_session
 from datetime import date, time
+from src.sidebar import sidebar
 
 #Require Login
 user = require_login()
+sidebar()
 
 #Ensure user is a teacher
 teacher_id = get_teacher_id(user["id"])

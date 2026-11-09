@@ -1,7 +1,9 @@
 import streamlit, pandas
 from src.passwords import require_login
+from src.sidebar import sidebar
 #require Login
 require_login()
+sidebar()
 
 ### Notes & other information
 # Stages of processing user file

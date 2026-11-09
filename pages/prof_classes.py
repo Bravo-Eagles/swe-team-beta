@@ -3,9 +3,11 @@ from datetime import datetime
 from src.passwords import require_login
 from api.courses import create_class
 from api.courses import get_classes, get_teaching_classes, get_teacher_id
+from src.sidebar import sidebar
 
 #require Login
 user = require_login()
+sidebar()
 st.query_params.clear() #Clear query params, useful if prof goes back a page from a class
 teacher_id = get_teacher_id(user["id"])
 
