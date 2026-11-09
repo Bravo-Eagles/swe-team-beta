@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS class(
 
 -- A class that is taught
 CREATE TABLE IF NOT EXISTS teaching(
-    id BIGINT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     teacher_id BIGINT NOT NULL REFERENCES teacher(id),
     class_id BIGINT NOT NULL REFERENCES class(id),
     semester VARCHAR(8) NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS teaching(
 
 -- When a class is scheduled to be taught
 CREATE TABLE IF NOT EXISTS scheduled(
-    id BIGINT PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
     teaching_id BIGINT NOT NULL REFERENCES teaching(id),
     date DATE NOT NULL,
     start_time TIME NOT NULL,
@@ -73,6 +73,6 @@ CREATE TABLE IF NOT EXISTS attendance(
     scheduled_id BIGINT NOT NULL REFERENCES scheduled(id),
     student_id BIGINT NOT NULL REFERENCES student(id),
     check_in_time DATE NOT NULL,
-    is_delted BOOLEAN NOT NULL DEFAULT 0,
+    is_deleted BOOLEAN NOT NULL DEFAULT 0,
     PRIMARY KEY (scheduled_id, student_id)
 );
