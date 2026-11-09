@@ -6,7 +6,32 @@ from api.checkin_api import get_checkin_details, submit_checkin
 
 from src.passwords import current_user
 
+from src.nfc import verify_tap
+from api.nfc_api import record_tap, find_nfc_scheduled_id
+
 st.title("Student Check-In")
+
+# Factory key (all zeros) for testing. Replace with our own secret key before real use.
+FACTORY_KEY = bytes(16)
+
+picc_data = st.query_params.get("picc_data")
+cmac = st.query_params.get("cmac")
+
+if picc_data and cmac:
+    try:
+        uid, counter = verify_tap(picc_data, cmac, FACTORY_KEY)
+    except ValueError:
+        st.error("This check-in link isn't valid. Please tap the tag again.")
+        st.stop()
+
+    if not record_tap(uid, counter):
+        st.error("This check-in link was already used. Please tap the tag again.")
+        st.stop()
+
+    # Link accepted: remember the tag for this browser session, and remove
+    # the link from the address bar so reruns don't check it again.
+    st.session_state["nfc_uid"] = uid
+    st.query_params.clear()
 
 raw_id = st.query_params.get("scheduled_id")
 
@@ -16,6 +41,15 @@ if current_user() is None:
     st.switch_page("./pages/login.py")
 
 user = require_login()
+
+# NFC check-in: work out the class from the tag's professor.
+if not raw_id and "nfc_uid" in st.session_state:
+    found = find_nfc_scheduled_id(st.session_state["nfc_uid"], user["id"])
+    if found is None:
+        st.error("You don't have a class with this professor right now.")
+        st.stop()
+    raw_id = found
+
 if not raw_id:
     st.warning("Please scan your class QR code to check in.")
     st.stop()
@@ -67,6 +101,8 @@ if submitted:
                 "Exit slip submitted! "
                 "You have been marked present."
             )
+            st.session_state.pop("nfc_uid", None)
+            
         except ValueError as exc:
             st.error(str(exc))
         except Exception:
