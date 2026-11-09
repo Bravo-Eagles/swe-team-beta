@@ -45,6 +45,34 @@ def get_classes(class_id=None):
             
     except sqlite3.Error as e:
         print(f"An error has occured: {e}")
+        return []
+
+def get_teaching_classes(teacher_id):
+    #
+    query = """SELECT t.id AS teaching_id, t.semester, t.year,
+                      c.id AS class_id, c.name, c.course_id
+                    FROM teaching t 
+                    JOIN class c ON c.id = t.class_id 
+                    WHERE t.teacher_id = ?"""
+
+    try:
+        with db.get_connection() as conn:
+            cursor = conn.execute(query, (teacher_id,))
+            return cursor.fetchall()
+            
+    except sqlite3.Error as e:
+        print(f"An error has occured: {e}")
+        return []
+
+def get_teacher_id(account_id):
+    query = "SELECT id FROM teacher WHERE account_id = ?"
+    try:
+        with db.get_connection() as conn:
+            row = conn.execute(query, (account_id,)).fetchone()
+            return row["id"] if row else None
+    except sqlite3.Error as e:
+        print(f"An error has occurred in get_teacher_id: {e}")
+        return None
 
 def delete_class(student_id, scheduled_id):
     #Deletes a row from the attendance table, uses a soft delete to preserve information
@@ -57,20 +85,34 @@ def delete_class(student_id, scheduled_id):
             return cursor.rowcount()
     except sqlite3.Error as e:
         print(f"An error has occured: {e}")
+        return []
         
 
 
-def get_class_roster(course_id):
-    query = """SELECT s.id, s.first_name, s.middle_name, s.last_name, s.active,
-                      t.semester, t.year
+def get_class_roster(teaching_id):
+    query = """SELECT s.id, s.first_name, s.middle_name, s.last_name, s.active
                FROM student s
                JOIN enrolled e ON e.student_id = s.id
-               JOIN teaching t ON t.id = e.teaching_id
-               JOIN class c    ON c.id = t.class_id
-               WHERE c.course_id = ?"""
+               WHERE e.teaching_id = ?
+               ORDER BY s.last_name, s.first_name"""
     try:
         with db.get_connection() as conn:
-            return conn.execute(query, (course_id,)).fetchall()
+            return conn.execute(query, (teaching_id,)).fetchall()
     except sqlite3.Error as e:
         print(f"An error has occurred in get_class_roster: {e}")
         return []
+
+
+def get_teaching_section(teaching_id, teacher_id):
+    #Accepts in a teachingID and teacherID and validates that the teacher owns that section.
+    query = """SELECT t.id AS teaching_id, t.semester, t.year,
+                      c.name, c.course_id
+               FROM teaching t
+               JOIN class c ON c.id = t.class_id
+               WHERE t.id = ? AND t.teacher_id = ?"""
+    try:
+        with db.get_connection() as conn:
+            return conn.execute(query, (teaching_id, teacher_id)).fetchone()
+    except sqlite3.Error as e:
+        print(f"An error occurred in get_teaching_section: {e}")
+        return None
