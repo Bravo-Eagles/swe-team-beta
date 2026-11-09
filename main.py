@@ -24,7 +24,8 @@ if (ARG_Count > 1) :
 
 
 def main():
-    streamlit.title("Check In") # Static text
+    streamlit.title("CheckIn") # Static text
+    streamlit.subheader("The All in One Check In System")
     print("Hello from swe-team-beta!")
     streamlit.button("Logout", on_click=logout)
 

@@ -1,10 +1,13 @@
 
 import streamlit as st
 
+from src.sidebar import sidebar
 from src.passwords import require_login
 from api.checkin_api import get_checkin_details, submit_checkin
 
 from src.passwords import current_user
+
+sidebar()
 
 st.title("Student Check-In")
 
