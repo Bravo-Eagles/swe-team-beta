@@ -4,11 +4,23 @@ from src.passwords import handle_login, current_user, login_user
 
 #Route to dashboard, where login redirects too
 HOME_PAGE = "./pages/example.py"
+def redirect_after_login():
+    scheduled_id = streamlit.session_state.pop(
+        "pending_checkin_id", None
+    )
+
+    if scheduled_id:
+        streamlit.switch_page(
+            "./pages/check_in.py",
+            query_params={"scheduled_id": str(scheduled_id)}
+        )
+
+    streamlit.switch_page(HOME_PAGE)
 
 streamlit.set_page_config(initial_sidebar_state="collapsed")
 
 if current_user():
-    streamlit.switch_page(HOME_PAGE)
+    redirect_after_login()
 
 # Hide the sidebar and its collapse/expand control entirely
 streamlit.markdown(
@@ -38,7 +50,7 @@ with center:
             if not email or not password:
                 streamlit.error("Please enter your email and password.")
             elif login_user(email, password):
-                streamlit.switch_page(HOME_PAGE)
+                redirect_after_login()
             else:
                 streamlit.error("Invalid email or password.")
 
