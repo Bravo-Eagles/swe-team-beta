@@ -76,3 +76,20 @@ CREATE TABLE IF NOT EXISTS attendance(
     is_deleted BOOLEAN NOT NULL DEFAULT 0,
     PRIMARY KEY (scheduled_id, student_id)
 );
+
+-- An NFC tag a teacher uses for check-in
+CREATE TABLE IF NOT EXISTS nfc_tag(
+    uid VARCHAR(14) PRIMARY KEY,
+    teacher_id BIGINT NOT NULL REFERENCES teacher(id),
+    last_counter INTEGER NOT NULL DEFAULT 0
+  
+-- Store student exit slip responses for scheduled classes
+CREATE TABLE IF NOT EXISTS exit_slip (
+    id INTEGER PRIMARY KEY,
+    scheduled_id INTEGER NOT NULL REFERENCES scheduled(id),
+    student_id INTEGER NOT NULL REFERENCES student(id),
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    submitted_at TEXT NOT NULL,
+    UNIQUE (scheduled_id, student_id)
+);

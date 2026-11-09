@@ -29,13 +29,29 @@ def _hash_token(token: str):
     return hashlib.sha256(token.encode()).hexdigest()
 
 def create_session(userID, token, expires):
-    cleanup_query = "DELETE FROM sessions WHERE expires < ?" #Clears inactive sessions on run
-    query = "INSERT INTO sessions VALUES (?, ?, ?)"
+    cleanup_query = "DELETE FROM sessions WHERE expires < ?"
+
+    query = """
+        INSERT INTO sessions (token_hash, user_id, expires)
+        VALUES (?, ?, ?)
+        ON CONFLICT(user_id)
+        DO UPDATE SET
+            token_hash = excluded.token_hash,
+            expires = excluded.expires
+    """
+
     try:
         with db.get_connection() as conn:
-            conn.execute(cleanup_query, (datetime.datetime.now(datetime.timezone.utc).isoformat(),))
-            conn.execute(query, (_hash_token(token), userID, expires.isoformat()))
+            conn.execute(
+                cleanup_query,
+                (datetime.datetime.now(datetime.timezone.utc).isoformat(),)
+            )
+            conn.execute(
+                query,
+                (_hash_token(token), userID, expires.isoformat())
+            )
             return token, expires
+
     except sqlite3.Error as e:
         print(f"An Error Occurred: {e}")
         return None
