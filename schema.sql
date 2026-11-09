@@ -32,8 +32,9 @@ CREATE TABLE IF NOT EXISTS student(
     first_name VARCHAR(70) NOT NULL,
     middle_name VARCHAR(70),
     last_name VARCHAR(70) NOT NULL,
-    account_id NOT NULL REFERENCES accounts(id),
+    account_id INTEGER REFERENCES accounts(id),
     active TINYINT NOT NULL
+    CHECK (active = 0 OR account_id IS NOT NULL)
 );
 
 -- A class that could exist
