@@ -115,8 +115,9 @@ def get_teacher(id):
     try:
         cursor = conn.execute(
             """
-            SELECT * FROM teacher
-            WHERE id = ?
+            SELECT * FROM teacher t
+            JOIN accounts a ON a.id = t.account_id
+            WHERE a.id = ?
             """,
             (id,)
         )

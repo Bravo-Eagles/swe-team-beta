@@ -89,11 +89,14 @@ def require_login():
     return user
 
 def logout():
-    token = st.context.cookies.get(COOKIE)
-    if token:
-        auth_api.delete_session(token)
-    cookies = stx.CookieManager(key="cookie_mgr_logout")
-    cookies.delete(COOKIE, key="del_cookie")
-    st.session_state.pop("user", None)
-    time.sleep(0.5) #Need hard sleep to manage cookies, is icky
+    cookies = stx.CookieManager(key="cookie_mgr")
+    if not st.session_state.get("logging_out"):
+        token = st.context.cookies.get(COOKIE)
+        if token:
+            auth_api.delete_session(token)
+        st.session_state.pop("user", None)
+        cookies.delete(COOKIE, key="del_cookie")
+        st.session_state["logging_out"] = True
+        st.stop()   # let the component render and trigger its own rerun
+    st.session_state.pop("logging_out", None)
     st.switch_page(LOGIN_PAGE)

@@ -1,8 +1,10 @@
 import streamlit
 from src.ai_request import AIRequest
 from src.passwords import require_login
+from src.sidebar import sidebar
 #require Login
 require_login()
+sidebar()
 
 input_api = streamlit.text_input("Type your api key", "Type api key here")
 input_instruction = streamlit.text_input("Type your instructions", "In what way should I respond")

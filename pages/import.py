@@ -1,9 +1,11 @@
 import streamlit, pandas
 from api import attendance_api
 from src.passwords import require_login
+from src.sidebar import sidebar
 from src.database import get_connection 
 #require Login
 require_login()
+sidebar()
 
 ### Notes & other information
 # Stages of processing user file

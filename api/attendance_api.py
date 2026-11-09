@@ -43,7 +43,7 @@ def update_attendance_log(check_in_time, student_id, scheduled_id):
     """
     query = """
         UPDATE attendance
-        SET check_in_time = ?, is_delted = 0
+        SET check_in_time = ?, is_deleted = 0
         WHERE student_id = ? AND scheduled_id = ?
     """
     with closing(db.get_connection()) as conn:
@@ -89,7 +89,7 @@ def delete_attendance_log(student_id, scheduled_id):
     """
     query = """
         UPDATE attendance
-        SET is_delted = 1
+        SET is_deleted = 1
         WHERE scheduled_id = ? AND student_id = ?
     """
     with closing(db.get_connection()) as conn:
@@ -165,7 +165,7 @@ def list_students_for_session(
         LEFT JOIN attendance
             ON attendance.student_id = student.id
             AND attendance.scheduled_id = ?
-            AND attendance.is_delted = 0
+            AND attendance.is_deleted = 0
         WHERE enrolled.teaching_id = ?
         ORDER BY student.last_name, student.first_name, student.id
     """
@@ -291,11 +291,11 @@ def save_attendance_records(
                     conn.execute(
                         """
                         INSERT INTO attendance
-                            (scheduled_id, student_id, check_in_time, is_delted)
+                            (scheduled_id, student_id, check_in_time, is_deleted)
                         VALUES (?, ?, ?, 0)
                         ON CONFLICT (scheduled_id, student_id) DO UPDATE SET
                             check_in_time = excluded.check_in_time,
-                            is_delted = 0
+                            is_deleted = 0
                         """,
                         (scheduled_id, student_id, check_in_time),
                     )
@@ -303,7 +303,7 @@ def save_attendance_records(
                     conn.execute(
                         """
                         UPDATE attendance
-                        SET is_delted = 1
+                        SET is_deleted = 1
                         WHERE scheduled_id = ? AND student_id = ?
                         """,
                         (scheduled_id, student_id),

@@ -3,7 +3,7 @@ from src.passwords import handle_login, current_user, login_user
 
 
 #Route to dashboard, where login redirects too
-HOME_PAGE = "./pages/example.py"
+HOME_PAGE = "./main.py"
 def redirect_after_login():
     scheduled_id = streamlit.session_state.pop(
         "pending_checkin_id", None
