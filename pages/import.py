@@ -1,6 +1,7 @@
 import streamlit, pandas
-from src.passwords import require_login
 from api import attendance_api
+from src.passwords import require_login
+from src.database import get_connection 
 #require Login
 require_login()
 
@@ -17,6 +18,12 @@ require_login()
     # Stage 3 - Load into database
 # Actions should always be reversable 
 
+### TODO
+# Add time as importable option
+# Error catching for stage 3 needs improved
+# Stage 3 has no way to deal with multiple matches, so it just picks one. FIX THIS
+# Stage 3 add better defaults for handling date
+# Stage 3 add failsafe for database connection
 
 # Local Variables (Accessable across entire file)
 # Streamlit forgets on each pass of the script unless you use st.session_state
@@ -30,6 +37,7 @@ if "import_bitwiseFlag" not in streamlit.session_state:
     streamlit.session_state.import_nameFormatOrder = [] # Holds format of names
     streamlit.session_state.import_dateFormatOrder = [] # Holds format of names
     streamlit.session_state.import_formatSkipper = ""
+    streamlit.session_state.import_classId = 0
     streamlit.session_state.import_bitwiseFlag = 0
 # This is no longer ordered nicely
 # 0 = Whether a file has been uploaded
@@ -49,6 +57,7 @@ if "import_bitwiseFlag" not in streamlit.session_state:
 # 14 = Format skipper active
 # 15 = Format skipper end
 # 16 = Stage 3
+# 17 = Ran database commands
 # 20 = Import to database successful
 #  = User confirmed data
 
@@ -64,6 +73,7 @@ selectionData = streamlit.session_state.import_selectionData
 nameFormatOrder = streamlit.session_state.import_nameFormatOrder 
 dateFormatOrder = streamlit.session_state.import_dateFormatOrder 
 formatSkipper = streamlit.session_state.import_formatSkipper
+classId = streamlit.session_state.import_classId
 
 
 ### Helper functions
@@ -79,6 +89,7 @@ def save():
     streamlit.session_state.import_nameFormatOrder = nameFormatOrder
     streamlit.session_state.import_dateFormatOrder = dateFormatOrder
     streamlit.session_state.import_formatSkipper = formatSkipper
+    streamlit.session_state.import_classId = classId
 # Runs save, then reloads the page
 def update(): 
     save()
@@ -140,7 +151,7 @@ if not (bitwiseFlag & 1): # If file hasn't been uploaded
         streamlit.warning("No classes available. Please create a class first before importing attendance records")
 
     if streamlit.button("Upload"):
-        if file == None:
+        if file is None:
             streamlit.error("Error: No upload")
             bitwiseFlag &= ~(1 | 2 | 4 | 8) # Sets 0,1,2,3 to 0
         elif not bitwiseFlag & (1<<12):
@@ -363,11 +374,184 @@ elif bitwiseFlag & (1 << 10): # Stage 2 - Figure out formatting
             update()
 
 elif bitwiseFlag & (1 << 16): # Stage 3 - Put the stuff in the database
-    print(nameFormatOrder, dateFormatOrder)
     streamlit.progress(1)
-    for entry in spreadsheet:
-        streamlit.write(entry)
-    if streamlit.button("Import more?"):
-        back()
+    conn = get_connection()
+    try:
+        if not bitwiseFlag & (1 << 17):
+            bitwiseFlag |= (1 << 17)
+            formatSkipper = ""
+            for rowPos, entry in spreadsheet.iterrows():
+                # Import name. If name already exists just get its id
+                name: str = str(entry[nameRange["columns"][0]])
+                first_name: str|None = None
+                middle_name: str|None = None
+                last_name: str|None = None
+                student_id = -1
+                for thing in nameFormatOrder:
+                    tmp = name.split()[0]
+                    if thing == 0 or thing == 1 or thing == 2:
+                        if thing == 0:
+                            if first_name is None:
+                                first_name = tmp
+                            else:
+                                first_name = f"{first_name} {tmp}"
+                        elif thing == 1:
+                            if middle_name is None:
+                                middle_name = tmp
+                            else:
+                                middle_name = f"{middle_name} {tmp}"
+                        elif thing == 2:
+                            if last_name is None:
+                                last_name = tmp
+                            else:
+                                last_name = f"{last_name} {tmp}"
+                        name = name.replace(tmp, "", 1)
+                    else:
+                        name = name.replace(thing, "", 1)
+                if first_name is None or last_name is None:    
+                    formatSkipper = f"Error: For a student to exist in the database they must have both a first and last name. One is missing or malformed. Please try again.  \nFirst: {first_name}  \nLast:{last_name}"
+                    raise Exception("First and Last name are required")
+                if middle_name is None:
+                    student_id = conn.execute(
+                        """
+                        SELECT ID FROM student 
+                        WHERE first_name = ? AND last_name = ?
+                        """,
+                        (first_name, last_name)
+                    )
+                else:
+                    student_id = conn.execute(
+                        """
+                        SELECT ID FROM student 
+                        WHERE first_name = ? AND middle_name = ? AND last_name = ?
+                        """,
+                        (first_name, middle_name, last_name)
+                    ) 
+
+                student_id = student_id.fetchone()
+                if student_id is None:
+                    student_id = conn.execute(
+                             """
+                             INSERT INTO student (first_name, middle_name, last_name, active)
+                             VALUES (?, ?, ?, ?)
+                             """,
+                             (first_name, middle_name, last_name, 0)
+                    )  
+                    student_id = student_id.lastrowid
+                else:
+                    student_id = student_id["id"]
+                # Enrolls the student if not already enrolled
+                enrollment_status = conn.execute(
+                    """
+                    SELECT * FROM enrolled 
+                    WHERE teaching_id = ? AND student_id = ?
+                    """,
+                    (classId, student_id)
+                ) 
+                enrollment_status = enrollment_status.fetchone()
+                if enrollment_status is None:
+                    enrollment_status = conn.execute(
+                            """
+                            INSERT INTO enrolled (teaching_id, student_id)
+                            VALUES (?, ?)
+                            """,
+                            (classId, student_id)
+                    )  
+                    enrollment_status = enrollment_status.lastrowid
+                # Get the date format
+                date: str = str(entry[dateRange["columns"][0]])
+                date_month = None
+                date_year = None
+                date_day = None
+                for thing in dateFormatOrder:
+                    tmp = date[0]
+                    if thing == 0 or thing == 1 or thing == 2:
+                        if thing == 0: # Month
+                            if date_month is None:
+                                date_month = int(tmp)
+                            else:
+                                date_month = (date_month*10)+int(tmp)
+                        elif thing == 1: # Year
+                            if date_year is None:
+                                date_year = int(tmp)
+                            else:
+                                date_year = (date_year*10)+int(tmp)
+                        elif thing == 2: # Day
+                            if date_day is None:
+                                date_day = int(tmp)
+                            else:
+                                date_day = (date_day*10)+int(tmp)
+                        date = date.replace(tmp, "", 1)
+                    else:
+                        date = date.replace(thing, "", 1)
+                if date_day is None or date_month is None or date_year is None:    
+                    formatSkipper = f"Error: For a class to exist in the database they must have an exact date. At least one is missing or malformed. Please try again.  \nMonth: {date_month}  \nDay:{date_day}  \nYear: {date_year}"
+                    raise Exception("A full date is required")
+                if date_year < 100:
+                    date_year = 2000+date_year
+                # time 00:00:00
+                # date YYYY-MM-DD
+                # fstring formater :02d - Allows for padding zeros. Look for more of these later
+                scheduledClass = conn.execute(
+                    """
+                    SELECT * FROM scheduled 
+                    WHERE teaching_id = ? AND date = ? AND start_time = ?
+                    """,
+                    (classId, f"{date_year}-{date_month:02d}-{date_day:02d}", "00:00:00")
+                ) 
+                scheduledClass = scheduledClass.fetchone()
+                if scheduledClass is None:
+                    scheduledClass = conn.execute(
+                            """
+                            INSERT INTO scheduled (teaching_id, date, start_time)
+                            VALUES (?, ?, ?)
+                            """,
+                            (classId, f"{date_year}-{date_month:02d}-{date_day:02d}", "00:00:00")
+                    )  
+                    scheduledClass = scheduledClass.lastrowid
+                else:
+                    scheduledClass = scheduledClass["id"]
+                attended = spreadsheet[presentString["cells"][0][1]][presentString["cells"][0][0]]
+                attended = 1 if (entry[presentString["cells"][0][1]] == attended) else 0
+                attendanceRecord = conn.execute(
+                    """
+                    SELECT * FROM attendance 
+                    WHERE scheduled_id = ? AND student_id = ? AND check_in_time = ? AND is_deleted = ?
+                    """,
+                    (scheduledClass, student_id, "00:00:00", attended)
+                ) 
+                attendanceRecord = attendanceRecord.fetchone()
+                if attendanceRecord is None:
+                    attendanceRecord = conn.execute(
+                            """
+                            INSERT INTO attendance (scheduled_id, student_id, check_in_time, is_deleted)
+                            VALUES (?, ?, ?, ?)
+                            """,
+                            (scheduledClass, student_id, "00:00:00", attended)
+                    )  
+                    attendanceRecord = attendanceRecord.lastrowid
+
+                
+                conn.commit()
+    except Exception as error:
+        if formatSkipper == "":
+            streamlit.error("Unknown error. Please contact developers. Issues can be sent to https://github.com/Bravo-Eagles/swe-team-beta/issues  \n Just describe the problem and provide the error data from below.")
+            streamlit.error(f"{type(error)}  \n{error}  \n{bitwiseFlag}")
+        else:
+            streamlit.error(formatSkipper)
+        if streamlit.button("Back"):
+            back()
+    else:
+        if streamlit.button("Import more?"):
+            back()
+        # REMOVE THIS IS FOR TESTING
+        if streamlit.button("Rerun"):
+            bitwiseFlag &= ~(1<<17)
+        streamlit.success("Import complete")
+    finally:
+        conn.close()
+    save()
+    
+# Rather than "import more" using back() it should probably handle things itself or be reliant on an error state. I want there to be a back button if an error occurs during the writing to the database
 
 print(f"Import: {bin(bitwiseFlag)}")
