@@ -6,9 +6,12 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "bcrypt>=5.0.0",
+    "extra-streamlit-components>=0.1.81",
     "matplotlib>=3.11.2",
     "numpy>=2.5.3",
     "pycryptodome>=4.2.0",
+    "odfpy>=1.4.1",
+    "openpyxl>=3.1.5",
     "streamlit>=1.65.0",
 ]
 

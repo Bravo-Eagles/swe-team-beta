@@ -8,6 +8,9 @@
 
 import streamlit as st
 import matplotlib.pyplot as plt
+from src.passwords import require_login
+#require Login
+require_login()
 
 
 st.title("Class Attendance Dashboard")
