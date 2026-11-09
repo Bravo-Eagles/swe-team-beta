@@ -49,3 +49,28 @@ def get_classes(class_id=None):
 def delete_class(student_id, scheduled_id):
     #Deletes a row from the attendance table, uses a soft delete to preserve information
     query = "UPDATE attendance SET is_deleted = 1 WHERE scheduled_id = ? AND student_id = ?"
+
+    try:
+        with db.get_connection() as conn:
+            cursor = conn.execute(query, (scheduled_id, student_id))
+
+            return cursor.rowcount()
+    except sqlite3.Error as e:
+        print(f"An error has occured: {e}")
+        
+
+
+def get_class_roster(course_id):
+    query = """SELECT s.id, s.first_name, s.middle_name, s.last_name, s.active,
+                      t.semester, t.year
+               FROM student s
+               JOIN enrolled e ON e.student_id = s.id
+               JOIN teaching t ON t.id = e.teaching_id
+               JOIN class c    ON c.id = t.class_id
+               WHERE c.course_id = ?"""
+    try:
+        with db.get_connection() as conn:
+            return conn.execute(query, (course_id,)).fetchall()
+    except sqlite3.Error as e:
+        print(f"An error has occurred in get_class_roster: {e}")
+        return []

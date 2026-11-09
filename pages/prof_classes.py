@@ -14,6 +14,21 @@ st.write("Classes you teach.")
 
 cols = st.columns(2)
 
+#Class Creation Modal
+@st.dialog("Create a Class")
+def create_class_modal():
+  st.header("Create a Class")
+  with st.form("class_form", clear_on_submit=True, enter_to_submit=False):
+    new_class_name = st.text_input("Class Name")
+    course_id = st.number_input("Course ID", min_value=0, max_value=999999, step=1)
+    submitted = st.form_submit_button("Submit")
+
+    if submitted:
+      create_class(new_class_name, course_id)
+      st.success("Class Created")
+
+
+
 for index, course in enumerate(courses):
 
   col_target = cols[index % 2]
@@ -26,4 +41,4 @@ for index, course in enumerate(courses):
           st.switch_page("pages/class.py", query_params={"courseID": f"{course["course_id"]}"})
 
 if(st.button("Create New Class")):
-  create_class("Test Class", 12345)
+  create_class_modal()
