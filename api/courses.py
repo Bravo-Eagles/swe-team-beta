@@ -155,3 +155,31 @@ def create_section(teacher_id, semester, year, class_id=None, class_name=None, c
                VALUES (?, ?, ?, ?)""",
             (teacher_id, class_id, semester, year),
         ).lastrowid
+
+
+def search_addable_students(teaching_id, search="", limit=25):
+    """Active students NOT yet enrolled in this section, filtered by name."""
+    escaped = (search.strip().replace("\\", "\\\\")
+               .replace("%", "\\%").replace("_", "\\_"))
+    like = f"%{escaped}%"
+    query = """SELECT s.id, s.first_name, s.middle_name, s.last_name
+               FROM student s
+               WHERE s.active = 1
+                 AND s.id NOT IN (SELECT student_id FROM enrolled WHERE teaching_id = ?)
+                 AND (s.first_name || ' ' || s.last_name) LIKE ? ESCAPE '\\'
+               ORDER BY s.last_name, s.first_name
+               LIMIT ?"""
+    with db.get_connection() as conn:
+        return conn.execute(query, (teaching_id, like, limit)).fetchall()
+
+def add_students_to_section(teaching_id, student_ids):
+    """Enroll students; skips duplicates and inactive/unknown ids. Returns count added."""
+    added = 0
+    with db.get_connection() as conn:
+        for sid in student_ids:
+            added += conn.execute(
+                """INSERT OR IGNORE INTO enrolled (teaching_id, student_id)
+                   SELECT ?, id FROM student WHERE id = ? AND active = 1""",
+                (teaching_id, sid),
+            ).rowcount
+    return added

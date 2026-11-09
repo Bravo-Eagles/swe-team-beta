@@ -1,7 +1,7 @@
 import streamlit as st
 from src.passwords import require_login
 from api.courses import get_classes
-from api.courses import get_class_roster, get_teacher_id, get_teaching_section
+from api.courses import get_class_roster, get_teacher_id, get_teaching_section, search_addable_students, add_students_to_section
 from api.attendance_api import create_scheduled_session, list_scheduled_sessions, list_students_for_session
 from datetime import date, time
 from src.sidebar import sidebar
@@ -41,6 +41,31 @@ with st.expander("Roster", expanded=True):
             st.write(f"{student['first_name']} {student['last_name']}")
     else:
         st.info("No students enrolled.")
+
+#Add Students to the class
+with st.expander("Add students"):
+    search = st.text_input("Search by name", key="add_student_search")
+    candidates = search_addable_students(teaching_id, search)
+    by_id = {s["id"]: s for s in candidates}
+
+    def stu_label(student):
+        return f"{by_id[student]['first_name']} {by_id[student]['last_name']}"
+
+    picked = st.multiselect(
+        "Students to add",
+        options=list(by_id),
+        format_func=stu_label,
+        key="add_student_pick",
+    )
+    if len(candidates) == 25:
+        st.caption("Showing the first 25 matches. Type more to narrow the search.")
+
+    if st.button("Add selected", disabled=not picked):
+        count = add_students_to_section(teaching_id, picked)
+        st.session_state.pop("add_student_pick", None)
+        st.session_state.pop("add_student_search", None)
+        st.session_state["flash"] = f"Added {count} student{'s' if count != 1 else ''}."
+        st.rerun()
 
 #Get Attendance Information from all scheduled groups of the class
 scheduled_sessions = list_scheduled_sessions(teaching_id)
