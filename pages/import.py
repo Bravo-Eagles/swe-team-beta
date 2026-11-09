@@ -1,4 +1,7 @@
 import streamlit, pandas
+from src.passwords import require_login
+#require Login
+require_login()
 
 ### Notes & other information
 # Stages of processing user file
