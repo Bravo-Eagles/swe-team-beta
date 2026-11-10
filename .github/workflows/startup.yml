@@ -22,4 +22,15 @@ jobs:
 
       - name: Checking if website is avalible on port 8501 
         run: curl -is http://localhost:8501/_stcore/health
+  docker-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cloning repo
+        uses: actions/checkout@v6
+
+      - name: Running docker compose
+        run: docker compose up -d --build --wait
+
+      - name: Checking if website is avalible on port 8501 
+        run: curl -is --retry 5 --retry-delay 2 --retry-all-errors http://localhost:8501/_stcore/health
 
