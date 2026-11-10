@@ -1,0 +1,9 @@
+.git
+*.pyc
+test_crud.py
+uv.lock
+.env
+.venv
+*.db
+.vscode/
+__pycache__/
