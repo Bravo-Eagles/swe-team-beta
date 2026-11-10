@@ -5,6 +5,7 @@
 -- Account Table
 CREATE TABLE IF NOT EXISTS accounts(
     id INTEGER PRIMARY KEY,
+    user_name VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role VARCHAR(255) NOT NULL DEFAULT('STUDENT')
@@ -23,7 +24,7 @@ CREATE TABLE IF NOT EXISTS teacher(
     first_name VARCHAR(70) NOT NULL,
     middle_name VARCHAR(70),
     last_name VARCHAR(70) NOT NULL,
-    account_id NOT NULL REFERENCES accounts(id)
+    account_id INTEGER NOT NULL REFERENCES accounts(id)
 );
 
 -- Student Account
@@ -33,7 +34,7 @@ CREATE TABLE IF NOT EXISTS student(
     middle_name VARCHAR(70),
     last_name VARCHAR(70) NOT NULL,
     account_id INTEGER REFERENCES accounts(id),
-    active TINYINT NOT NULL
+    active TINYINT NOT NULL DEFAULT 0
     CHECK (active = 0 OR account_id IS NOT NULL)
 );
 
@@ -94,4 +95,28 @@ CREATE TABLE IF NOT EXISTS exit_slip (
     answer TEXT NOT NULL,
     submitted_at TEXT NOT NULL,
     UNIQUE (scheduled_id, student_id)
+);
+
+-- Store account settings
+CREATE TABLE IF NOT EXISTS account_settings (
+    id INTEGER PRIMARY KEY REFERENCES accounts(id),
+    text_size TINYINT DEFAULT 16 -- This is streamlits default text size
+);
+
+-- Store teacher settings
+CREATE TABLE IF NOT EXISTS teacher_settings (
+    id INTEGER PRIMARY KEY REFERENCES teacher(id),
+    ai_api VARCHAR(40),
+    ai_provide VARCHAR(20)
+);
+
+-- Store student settings
+CREATE TABLE IF NOT EXISTS student_settings (
+    id INTEGER PRIMARY KEY REFERENCES student(id)
+);
+
+-- Stores program settings using key-value
+CREATE TABLE IF NOT EXISTS global_settings (
+    key VARCHAR(25) PRIMARY KEY,
+    value VARCHAR(100) DEFAULT NULL
 );
