@@ -1,0 +1,9 @@
+services:
+  swe-team-beta:
+    build:
+      dockerfile: Dockerfile
+    image: swe-team-beta
+    ports:
+      - 8501:8501
+    environment:
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
