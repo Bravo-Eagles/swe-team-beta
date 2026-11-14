@@ -5,7 +5,7 @@
 -- Account Table
 CREATE TABLE IF NOT EXISTS accounts(
     id INTEGER PRIMARY KEY,
-    user_name VARCHAR(255) NOT NULL UNIQUE,
+    user_name VARCHAR(255) UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role VARCHAR(255) NOT NULL DEFAULT('STUDENT')
