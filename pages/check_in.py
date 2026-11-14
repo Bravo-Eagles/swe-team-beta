@@ -8,13 +8,28 @@ from api.checkin_api import get_checkin_details, submit_checkin
 from src.passwords import current_user
 
 from src.nfc import verify_tap
-from api.nfc_api import record_tap, find_nfc_scheduled_id
+from api.nfc_api import (
+    TAP_ACCEPTED,
+    TAP_ALREADY_USED,
+    TAP_TOO_OLD,
+    TAP_UNKNOWN_TAG,
+    find_nfc_scheduled_id,
+    record_tap,
+)
+
 sidebar()
 
 st.title("Student Check-In")
 
 # Factory key (all zeros) for testing. Replace with our own secret key before real use.
 FACTORY_KEY = bytes(16)
+
+# What to tell the student when a tap isn't accepted
+TAP_ERRORS = {
+    TAP_ALREADY_USED: "This check-in link was already used. Please tap the tag again.",
+    TAP_TOO_OLD: "This check-in link has expired. Please tap the tag again.",
+    TAP_UNKNOWN_TAG: "This tag isn't registered. Please let your professor know.",
+}
 
 picc_data = st.query_params.get("picc_data")
 cmac = st.query_params.get("cmac")
@@ -26,8 +41,9 @@ if picc_data and cmac:
         st.error("This check-in link isn't valid. Please tap the tag again.")
         st.stop()
 
-    if not record_tap(uid, counter):
-        st.error("This check-in link was already used. Please tap the tag again.")
+    result = record_tap(uid, counter)
+    if result != TAP_ACCEPTED:
+        st.error(TAP_ERRORS[result])
         st.stop()
 
     # Link accepted: remember the tag for this browser session, and remove
@@ -53,7 +69,7 @@ if not raw_id and "nfc_uid" in st.session_state:
     raw_id = found
 
 if not raw_id:
-    st.warning("Please scan your class QR code to check in.")
+    st.warning("Please tap the NFC tag or scan your class QR code to check in.")
     st.stop()
 
 try:

@@ -84,6 +84,13 @@ CREATE TABLE IF NOT EXISTS nfc_tag(
     teacher_id BIGINT NOT NULL REFERENCES teacher(id),
     last_counter INTEGER NOT NULL DEFAULT 0
 );
+
+-- Every NFC tap the app has accepted, so each tap link can only be used once
+CREATE TABLE IF NOT EXISTS nfc_tap(
+    uid VARCHAR(14) NOT NULL REFERENCES nfc_tag(uid) ON DELETE CASCADE,
+    counter INTEGER NOT NULL,
+    PRIMARY KEY (uid, counter)
+);
   
 -- Store student exit slip responses for scheduled classes
 CREATE TABLE IF NOT EXISTS exit_slip (
