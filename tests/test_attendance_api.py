@@ -90,7 +90,7 @@ class AttendanceApiTests(unittest.TestCase):
         students = attendance_api.list_students_for_session(40, 50)
         self.assertEqual(students[0]["is_present"], 0)
         attendance_row = attendance_api.select_attendance_log(20, 50)[0]
-        self.assertEqual(attendance_row["is_delted"], 1)
+        self.assertEqual(attendance_row["is_deleted"], 1)
 
         attendance_api.save_attendance_records(
             50,
@@ -103,7 +103,7 @@ class AttendanceApiTests(unittest.TestCase):
             ],
         )
         attendance_row = attendance_api.select_attendance_log(20, 50)[0]
-        self.assertEqual(attendance_row["is_delted"], 0)
+        self.assertEqual(attendance_row["is_deleted"], 0)
 
     def test_rejects_students_not_enrolled_in_the_class(self):
         """Reject attendance updates for students outside the class roster."""

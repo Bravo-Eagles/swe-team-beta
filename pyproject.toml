@@ -10,6 +10,9 @@ dependencies = [
     "matplotlib>=3.11.2",
     "numpy>=2.5.3",
     "pycryptodome>=4.2.0",
+    "odfpy>=1.4.1",
+    "openpyxl>=3.1.5",
+    "qrcode>=8.2",
     "streamlit>=1.65.0",
 ]
 

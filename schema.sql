@@ -32,15 +32,16 @@ CREATE TABLE IF NOT EXISTS student(
     first_name VARCHAR(70) NOT NULL,
     middle_name VARCHAR(70),
     last_name VARCHAR(70) NOT NULL,
-    account_id NOT NULL REFERENCES accounts(id),
+    account_id INTEGER REFERENCES accounts(id),
     active TINYINT NOT NULL
+    CHECK (active = 0 OR account_id IS NOT NULL)
 );
 
 -- A class that could exist
 CREATE TABLE IF NOT EXISTS class(
     id INTEGER PRIMARY KEY,
     name VARCHAR(70) NOT NULL,
-    course_id VARCHAR(10) NOT NULL
+    course_id VARCHAR(10) NOT NULL UNIQUE
 );
 
 -- A class that is taught
@@ -55,7 +56,7 @@ CREATE TABLE IF NOT EXISTS teaching(
 -- When a class is scheduled to be taught
 CREATE TABLE IF NOT EXISTS scheduled(
     id INTEGER PRIMARY KEY,
-    teaching_id BIGINT NOT NULL REFERENCES teaching(id),
+    teaching_id INTEGER NOT NULL REFERENCES teaching(id),
     date DATE NOT NULL,
     start_time TIME NOT NULL,
     end_time TIME
@@ -63,15 +64,15 @@ CREATE TABLE IF NOT EXISTS scheduled(
 
 -- When a student is enrolled in a course
 CREATE TABLE IF NOT EXISTS enrolled(
-    teaching_id BIGINT NOT NULL REFERENCES teaching(id),
-    student_id BIGINT NOT NULL REFERENCES student(id),
+    teaching_id INTEGER NOT NULL REFERENCES teaching(id),
+    student_id INTEGER NOT NULL REFERENCES student(id),
     PRIMARY KEY (teaching_id, student_id)
 );
 
 -- When a class is attended by a student
 CREATE TABLE IF NOT EXISTS attendance(
-    scheduled_id BIGINT NOT NULL REFERENCES scheduled(id),
-    student_id BIGINT NOT NULL REFERENCES student(id),
+    scheduled_id INTEGER NOT NULL REFERENCES scheduled(id),
+    student_id INTEGER NOT NULL REFERENCES student(id),
     check_in_time DATE NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT 0,
     PRIMARY KEY (scheduled_id, student_id)

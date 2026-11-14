@@ -1,8 +1,10 @@
 import streamlit, sys
+from src.passwords import require_login, logout
+from src.sidebar import sidebar
 
-from src.passwords import require_login
 #require Login
 require_login()
+sidebar()
 ## Global Variable
 ARG_Count: int = len(sys.argv)
 ARG_Flags: int = 0
@@ -22,8 +24,10 @@ if (ARG_Count > 1) :
 
 
 def main():
-    streamlit.text("Hello from swe-team-beta!") # Static text
+    streamlit.title("CheckIn") # Static text
+    streamlit.subheader("The All in One Check In System")
     print("Hello from swe-team-beta!")
+    streamlit.button("Logout", on_click=logout)
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ import streamlit as st
 from src.passwords import require_login
 from src import database as db
 from datetime import date
+from src.sidebar import sidebar
 
 # Page configuration
 st.set_page_config(
@@ -13,7 +14,7 @@ st.set_page_config(
 
 # Require login
 user = require_login()
-
+sidebar()
 
 # Retrieve student information
 def get_student_by_account_id(account_id):

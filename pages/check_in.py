@@ -1,6 +1,7 @@
 
 import streamlit as st
 
+from src.sidebar import sidebar
 from src.passwords import require_login
 from api.checkin_api import get_checkin_details, submit_checkin
 
@@ -8,6 +9,7 @@ from src.passwords import current_user
 
 from src.nfc import verify_tap
 from api.nfc_api import record_tap, find_nfc_scheduled_id
+sidebar()
 
 st.title("Student Check-In")
 
