@@ -15,6 +15,10 @@ def redirect_after_login():
             query_params={"scheduled_id": str(scheduled_id)}
         )
 
+    # Student tapped an NFC tag before logging in: send them back to check-in.
+    if "nfc_uid" in streamlit.session_state:
+        streamlit.switch_page("./pages/check_in.py")
+
     streamlit.switch_page(HOME_PAGE)
 
 streamlit.set_page_config(initial_sidebar_state="collapsed")
@@ -22,7 +26,7 @@ streamlit.set_page_config(initial_sidebar_state="collapsed")
 if current_user():
     redirect_after_login()
 
-# Hide the sidebar and its collapse/expand control entirely
+# Hide the sidebar and its collapse/expand controsl entirely
 streamlit.markdown(
     """
     <style>
