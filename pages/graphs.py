@@ -1,8 +1,4 @@
-#Notes. without a shared database i can't have attendance
-#update in real time and have a history of student attendance. 
-# left an example to show it works
-# to run make sure you have streamlit and matplotlib installed.
-# uv add matplotlib streamlit
+
 # uv run streamlit run graphs.py
 #  
 
