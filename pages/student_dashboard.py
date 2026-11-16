@@ -1,6 +1,6 @@
 
 import streamlit as st
-from src.passwords import require_login
+from src.passwords import require_role
 from src import database as db
 from datetime import date
 from src.sidebar import sidebar
@@ -13,7 +13,8 @@ st.set_page_config(
 )
 
 # Require login
-user = require_login()
+# Require student permissions
+user = require_role(["STUDENT"])
 sidebar()
 
 # Retrieve student information

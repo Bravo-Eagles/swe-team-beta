@@ -3,16 +3,15 @@ import io
 import qrcode
 import streamlit as st
 from src.sidebar import sidebar
-
-from src.passwords import require_login
+from src.passwords import require_role
 from api.professor_checkin_api import get_professor_sessions
 
+# Verify teacher permissions before displaying page content
+user = require_role(["TEACHER"])
 sidebar()
 
 st.title("Professor Check-In")
 st.write("Select a scheduled class to generate its check-in QR code.")
-
-user = require_login()
 sessions = get_professor_sessions(user["id"])
 
 if not sessions:

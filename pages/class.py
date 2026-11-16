@@ -1,13 +1,13 @@
 import streamlit as st
-from src.passwords import require_login
+from src.passwords import require_role
 from api.courses import get_classes
 from api.courses import get_class_roster, get_teacher_id, get_teaching_section, search_addable_students, add_students_to_section
 from api.attendance_api import create_scheduled_session, list_scheduled_sessions, list_students_for_session
 from datetime import date, time
 from src.sidebar import sidebar
 
-#Require Login
-user = require_login()
+# Require teacher permissions
+user = require_role(["TEACHER"])
 sidebar()
 
 #Ensure user is a teacher

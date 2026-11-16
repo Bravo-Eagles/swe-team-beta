@@ -1,10 +1,11 @@
 
 import streamlit as st
 from datetime import datetime
-from src.passwords import require_login
+from src.passwords import require_role
 from src.sidebar import sidebar
-#require Login
-require_login()
+
+# Require student permissions
+user = require_role(["STUDENT"])
 sidebar()
 
 st.title("Exit Slip")
