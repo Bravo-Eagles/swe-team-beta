@@ -1,80 +1,41 @@
+﻿import streamlit as st
 
-import streamlit as st
-from datetime import datetime
+from api.exit_slip_api import QUESTION, list_student_meetings, submit_exit_slip
 from src.passwords import require_login
 from src.sidebar import sidebar
-#require Login
-require_login()
+
+
+user = require_login()
 sidebar()
 
 st.title("Exit Slip")
-st.write("Submit your response to today's class question.")
+st.write("Submit your response to a class meeting's question.")
 
-# Demo question
-st.subheader("Today's Question")
-question = "What is one thing you learned today, and what is one question you still have?"
+meetings = {row["id"]: row for row in list_student_meetings(user["id"])}
+if not meetings:
+    st.info("No class meetings are available. You must be enrolled in a scheduled class.")
+    st.stop()
 
-st.info(question)
 
-# Store responses during the current session
-if "exit_slip_responses" not in st.session_state:
-    st.session_state.exit_slip_responses = []
+def meeting_label(meeting_id):
+    meeting = meetings[meeting_id]
+    return (f"{meeting['course_id']} - {meeting['name']} | "
+            f"{meeting['date']} {meeting['start_time']}")
 
-# Student response form
-with st.form("exit_slip_form"):
-    student_name = st.text_input("Your name")
+
+selected_meeting = st.selectbox("Class meeting", list(meetings), format_func=meeting_label)
+st.subheader("Class Question")
+st.info(QUESTION)
+st.caption("Submitting again replaces your response for this meeting.")
+
+with st.form(f"exit_slip_form_{selected_meeting}", clear_on_submit=True):
     answer = st.text_area("Your response")
-
     submitted = st.form_submit_button("Submit Exit Slip")
 
-    if submitted:
-        if not student_name.strip() or not answer.strip():
-            st.error("Please enter your name and response.")
-        else:
-            response = {
-                "name": student_name.strip(),
-                "question": question,
-                "answer": answer.strip(),
-                "submitted_at": datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
-            }
-
-            st.session_state.exit_slip_responses.append(response)
-
-            st.success("Your exit slip was submitted successfully!")
-
-# Demo view of submitted responses
-st.divider()
-
-with st.expander("Professor View: Submitted Responses"):
-    st.subheader("Exit Slip Responses")
-
-    if st.session_state.exit_slip_responses:
-        st.write(
-            f"Total submissions: "
-            f"{len(st.session_state.exit_slip_responses)}"
-        )
-
-        for index, response in enumerate(
-            st.session_state.exit_slip_responses, start=1
-        ):
-            st.markdown(f"### Response {index}")
-            st.write("Student:", response["name"])
-            st.write("Answer:", response["answer"])
-            st.caption(
-                f"Submitted at: {response['submitted_at']}"
-            )
+if submitted:
+    try:
+        submit_exit_slip(user["id"], selected_meeting, answer)
+    except ValueError as exc:
+        st.error(str(exc))
     else:
-        st.info("No responses have been submitted yet.")
-
-if st.session_state.exit_slip_responses:
-    for index, response in enumerate(
-        st.session_state.exit_slip_responses, start=1
-    ):
-        with st.expander(f"Response {index}: {response['name']}"):
-            st.write("**Question:**", response["question"])
-            st.write("**Answer:**", response["answer"])
-            st.caption(f"Submitted: {response['submitted_at']}")
-else:
-    st.write("No responses submitted yet.")
+        st.success("Your exit slip was submitted successfully!")
