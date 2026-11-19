@@ -159,7 +159,7 @@ def _time_selectors(prefix: str, default: time) -> time:
 
 sidebar()
 
-st.title("Attendance Data Editor")
+st.title("Meeting and Student Editor", anchor = False)
 st.write("Review and update student attendance for a class meeting.")
 
 
@@ -297,7 +297,7 @@ def _meeting_sort_key(row):
 
 meeting_rows.sort(key=_meeting_sort_key)
 
-st.subheader("Class meetings")
+st.subheader("Class Meeting Records")
 
 st.caption(
     "Select a meeting to view its attendance records."
@@ -395,19 +395,19 @@ if meeting_status == "Upcoming":
                 st.success("Class meeting updated!")
                 st.rerun()
 
-    with st.expander("Cancel this meeting"):
-        if st.button(
-                "Delete Meeting",
-                key=f"delete_meeting_{scheduled_id}",
-                type="secondary",
-            ):
-                try:
-                    attendance_api.cancel_scheduled_session(scheduled_id)
-                except ValueError as exc:
-                    st.error(str(exc))
-                else:
-                    st.success("Meeting removed successfully!")
-                    st.rerun()
+    
+    if st.button(
+        "Delete Selected Meeting",
+        key=f"delete_meeting_{scheduled_id}",
+        type="secondary",
+    ):
+        try:
+            attendance_api.cancel_scheduled_session(scheduled_id)
+        except ValueError as exc:
+            st.error(str(exc))
+        else:
+            st.success("Meeting removed successfully!")
+            st.rerun()
 
 elif meeting_status == "In progress":
 
@@ -428,9 +428,9 @@ students = attendance_api.list_students_for_session(
     scheduled_id,
 )
 
-st.subheader("Attendance — Selected Meeting")
+st.subheader("Attendance Record")
 
-st.caption(
+st.markdown(
     f"{selected_session['date']} · "
     f"{_format_time(selected_session['start_time'])}–"
     f"{_format_time(selected_session['end_time'])}"
@@ -468,67 +468,21 @@ for student in students:
 
         st.markdown(f"**{student_name}**")
 
-        status_col, time_col = st.columns(2)
+        attendance_options = ["Present", "Absent"]
+        current_status = student_data["status"]
 
-        with status_col:
-
-            student_data["status"] = st.selectbox(
-                "Attendance",
-                options=[
-                    "Present",
-                    "Absent",
-                    "Not recorded",
-                ],
-                index=[
-                    "Present",
-                    "Absent",
-                    "Not recorded",
-                ].index(student_data["status"]),
-                key=f"status_{scheduled_id}_{student_id}",
-            )
-
-        with time_col:
-
-            st.write("Time signed in")
-
-            if st.button(
-                _time_label(student_data["time"]),
-                key=f"open_time_{scheduled_id}_{student_id}",
-                width="stretch",
-            ):
-                st.session_state[
-                    f"editing_time_{scheduled_id}"
-                ] = student_id
-                st.rerun()
-
-        editing_student = st.session_state.get(
-            f"editing_time_{scheduled_id}"
+        student_data["status"] = st.selectbox(
+            "Student Attendance",
+            label_visibility="collapsed",
+            options=attendance_options,
+            index=(
+                attendance_options.index(current_status)
+                if current_status in attendance_options
+                else None
+            ),
+            placeholder="Not recorded",
+            key=f"status_{scheduled_id}_{student_id}",
         )
-
-        if editing_student == student_id:
-
-            with st.container(border=True):
-
-                st.markdown("**Edit time signed in**")
-
-                selected_time = _time_selectors(
-                    f"student_time_{scheduled_id}_{student_id}",
-                    student_data["time"],
-                )
-
-                if st.button(
-                    "Add",
-                    key=f"add_time_{scheduled_id}_{student_id}",
-                    width="stretch",
-                ):
-
-                    student_data["time"] = selected_time
-
-                    st.session_state[
-                        f"editing_time_{scheduled_id}"
-                    ] = None
-
-                    st.rerun()
 
 
 # --------------------------------------------------
@@ -562,7 +516,7 @@ if st.button(
         records.append(
             {
                 "student_id": int(student_id),
-                "attendance_status": student_data["status"],
+                "attendance_status": student_data["status"] or "Not recorded",
                 "check_in_time": check_in_datetime.isoformat(
                     sep=" ",
                     timespec="minutes",
@@ -583,8 +537,6 @@ if st.button(
         # Reload saved attendance from the database.
         del st.session_state[state_key]
 
-        st.success(
-            "Attendance saved successfully!"
-        )
+        st.toast("Attendance updated successfully!", icon="✅")
 
         st.rerun()
