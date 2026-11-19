@@ -5,3 +5,4 @@ test_crud.py
 *.db
 .vscode/
 __pycache__/
+.uv-cache/

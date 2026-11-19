@@ -22,17 +22,26 @@ class AttendanceApiTests(unittest.TestCase):
             with conn:
                 conn.execute(
                     """
-                    INSERT INTO teacher (id, first_name, last_name, email, password_hash)
-                    VALUES (10, 'Alex', 'Teacher', 'alex@example.com', 'hash')
+                    INSERT INTO accounts (id, email, password_hash, role)
+                    VALUES
+                        (1, 'alex@example.com', 'hash', 'PROFESSOR'),
+                        (2, 'casey@example.com', 'hash', 'STUDENT'),
+                        (3, 'jordan@example.com', 'hash', 'STUDENT')
+                    """
+                )
+                conn.execute(
+                    """
+                    INSERT INTO teacher (id, first_name, last_name, account_id)
+                    VALUES (10, 'Alex', 'Teacher', 1)
                     """
                 )
                 conn.execute(
                     """
                     INSERT INTO student
-                        (id, first_name, last_name, email, password_hash, active)
+                        (id, first_name, last_name, account_id, active)
                     VALUES
-                        (20, 'Casey', 'Student', 'casey@example.com', 'hash', 1),
-                        (21, 'Jordan', 'Student', 'jordan@example.com', 'hash', 1)
+                        (20, 'Casey', 'Student', 2, 1),
+                        (21, 'Jordan', 'Student', 3, 1)
                     """
                 )
                 conn.execute(
