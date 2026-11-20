@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS scheduled(
     is_cancelled BOOLEAN NOT NULL DEFAULT 0
 );
 CREATE UNIQUE INDEX IF NOT EXISTS unique_class_meeting
-ON scheduled (teaching_id, date, start_time);
+ON scheduled (teaching_id, date, start_time)
+WHERE is_cancelled = 0;
 -- When a student is enrolled in a course
 CREATE TABLE IF NOT EXISTS enrolled(
     teaching_id INTEGER NOT NULL REFERENCES teaching(id),

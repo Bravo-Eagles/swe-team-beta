@@ -224,11 +224,8 @@ with st.expander("Add a class meeting"):
     if add_meeting:
 
         if meeting_end_time <= meeting_start_time:
-            st.error(
-                "End time must be later than start time."
-            )
-
-        else:
+            st.error( "End time must be later than start time.")
+        if meeting_end_time > meeting_start_time:
             try:
                 attendance_api.create_scheduled_session(
                     teaching_id,
@@ -241,11 +238,8 @@ with st.expander("Add a class meeting"):
                 st.error(str(exc))
 
             else:
-                st.success(
-                    "Class meeting added successfully!"
-                )
+                st.success("Class meeting added successfully!")
                 st.rerun()
-
 
 # --------------------------------------------------
 # CLASS MEETING TABLE
