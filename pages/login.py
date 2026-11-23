@@ -1,5 +1,6 @@
 import streamlit
 from src.passwords import handle_login, current_user, login_user
+from src.style import load_favicon
 
 # Route to dashboard, where login redirects to
 HOME_PAGE = "./main.py"
