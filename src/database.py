@@ -74,6 +74,42 @@ def init_db():
     finally:
         conn.close()
 
+
+def get_text_size(account_id):
+    """Get the saved text size for an account."""
+    conn = get_connection()
+    try:
+        result = conn.execute(
+            "SELECT text_size FROM account_settings WHERE id = ?",
+            (account_id,)
+        ).fetchone()
+
+        if result is None:
+            return 18
+
+        return result["text_size"]
+    finally:
+        conn.close()
+
+
+def update_text_size(account_id, text_size):
+    """Save the selected text size for an account."""
+    conn = get_connection()
+    try:
+        conn.execute(
+            """
+            INSERT INTO account_settings (id, text_size)
+            VALUES (?, ?)
+            ON CONFLICT(id)
+            DO UPDATE SET text_size = excluded.text_size
+            """,
+            (account_id, text_size)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 # Make sure the database and tables exist as soon as any page
 # imports this module. Python only runs this once per server
 # start, not on every Streamlit rerun

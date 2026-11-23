@@ -34,6 +34,10 @@ def sidebar():
             "pages/professor_checkin.py",
             label="Professor Check In"
         )
+        st.sidebar.page_link(
+            'pages/settings.py', 
+            label='Settings'
+        )
 
     else:
         st.sidebar.warning("Your account has no recognized role.")

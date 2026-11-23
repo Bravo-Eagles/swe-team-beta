@@ -65,6 +65,6 @@ if st.button("Generate QR Code"):
     image_buffer = io.BytesIO()
     qr.save(image_buffer, format="PNG")
 
-    st.image(image_buffer.getvalue(), width=250)
+    st.image(image_buffer.getvalue(), width=500)
     st.code(checkin_url)
     st.success("QR code generated successfully!")

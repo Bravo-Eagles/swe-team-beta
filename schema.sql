@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS exit_slip (
 -- Store account settings
 CREATE TABLE IF NOT EXISTS account_settings (
     id INTEGER PRIMARY KEY REFERENCES accounts(id),
-    text_size TINYINT DEFAULT 16 -- This is streamlits default text size
+    text_size TINYINT DEFAULT 18 
 );
 
 -- Store teacher settings
