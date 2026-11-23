@@ -21,11 +21,8 @@ def update_class(class_name, course_ID, class_id):
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
 
-
-
-
 def get_classes(class_id=None):
-    #
+    #Selects all classes
     query = "SELECT * FROM class WHERE 1=1"
     params = []
 
@@ -38,7 +35,6 @@ def get_classes(class_id=None):
             cursor = conn.execute(query, params)
 
             if class_id is not None: #If searching by class_id only return one row
-                print("ONLY ONE")
                 return cursor.fetchone()
             else:
                 return cursor.fetchall()
@@ -48,7 +44,7 @@ def get_classes(class_id=None):
         return []
 
 def get_teaching_classes(teacher_id):
-    #
+    #Selects class sections that a professor is teaching based on ID
     query = """SELECT t.id AS teaching_id, t.semester, t.year,
                       c.id AS class_id, c.name, c.course_id
                     FROM teaching t 
@@ -65,6 +61,7 @@ def get_teaching_classes(teacher_id):
         return []
 
 def get_teacher_id(account_id):
+    """Fetches a Teacher ID based on account ID"""
     query = "SELECT id FROM teacher WHERE account_id = ?"
     try:
         with db.get_connection() as conn:
@@ -90,6 +87,7 @@ def delete_class(student_id, scheduled_id):
 
 
 def get_class_roster(teaching_id):
+    """Fetches a sections roster"""
     query = """SELECT s.id, s.first_name, s.middle_name, s.last_name, s.active
                FROM student s
                JOIN enrolled e ON e.student_id = s.id
@@ -159,6 +157,8 @@ def create_section(teacher_id, semester, year, class_id=None, class_name=None, c
 
 def search_addable_students(teaching_id, search="", limit=25):
     """Active students NOT yet enrolled in this section, filtered by name."""
+
+    #These escapes fix and issue with LIKE where a professor could import non-sanitized wildcard characters to view a ton of students
     escaped = (search.strip().replace("\\", "\\\\")
                .replace("%", "\\%").replace("_", "\\_"))
     like = f"%{escaped}%"

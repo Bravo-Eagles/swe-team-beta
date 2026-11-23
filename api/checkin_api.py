@@ -63,6 +63,7 @@ def submit_checkin(account_id, scheduled_id, question, answer):
                     scheduled.date,
                     scheduled.start_time,
                     scheduled.end_time
+                    scheduled.is_cancelled
                 FROM student
                 JOIN enrolled
                     ON enrolled.student_id = student.id
@@ -81,6 +82,11 @@ def submit_checkin(account_id, scheduled_id, question, answer):
                 )
 
             student_id = row["student_id"]
+            # Prevent students from checking into canceled meetings.
+            if row["is_cancelled"]:
+                raise ValueError(
+                    "This class meeting has been canceled. Check-in is unavailable."
+                )
 
             # Prevent duplicate exit slip submissions.
             existing = conn.execute(
@@ -133,12 +139,13 @@ def submit_checkin(account_id, scheduled_id, question, answer):
             conn.execute(
                 """
                 INSERT INTO attendance
-                    (scheduled_id, student_id, check_in_time, is_deleted)
-                VALUES (?, ?, ?, 0)
+                    (scheduled_id, student_id, check_in_time, is_deleted, attendance_status)
+                VALUES (?, ?, ?, 0, 'Present')
                 ON CONFLICT(scheduled_id, student_id)
                 DO UPDATE SET
                     check_in_time = excluded.check_in_time,
-                    is_deleted = 0
+                    is_deleted = 0,
+                    attendance_status = 'Present'
                 """,
                 (scheduled_id, student_id, now),
             )

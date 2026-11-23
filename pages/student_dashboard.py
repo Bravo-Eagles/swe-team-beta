@@ -4,17 +4,13 @@ from src.passwords import require_login
 from src import database as db
 from datetime import date
 from src.sidebar import sidebar
+from src.style import setup_page
 
-# Page configuration
-st.set_page_config(
-    page_title="Student Dashboard",
-    page_icon="🎓",
-    layout="wide"
-)
 
-# Require login
+setup_page("Student Dashboard", layout="wide", gradient=False)
 user = require_login()
 sidebar()
+
 
 # Retrieve student information
 def get_student_by_account_id(account_id):
@@ -220,20 +216,16 @@ else:
 
     else:
         for course in classes:
-            with st.container(border=True):
+            with st.container(border=True, key=f"card_class_{course['teaching_id']}"):
                 st.subheader(course["class_name"])
                 st.write(f"Course ID: {course['course_id']}")
-                st.write(
-                    f"Semester: {course['semester']} "
-                    f"{course['year']}"
-                )
+                st.write(f"Semester: {course['semester']} {course['year']}")
 
                 if st.button(
                     "View Class",
-                    key=f"view_class_{course['teaching_id']}"
+                    type="primary",
+                    key=f"view_class_{course['teaching_id']}",
                 ):
-                    st.session_state["selected_teaching_id"] = (
-                        course["teaching_id"]
-                    )
+                    st.session_state["selected_teaching_id"] = course["teaching_id"]
                     st.session_state["show_class_details"] = True
                     st.rerun()

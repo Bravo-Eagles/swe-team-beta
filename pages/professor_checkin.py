@@ -3,13 +3,13 @@ import io
 import qrcode
 import streamlit as st
 from src.sidebar import sidebar
+from src.style import setup_page
 
 from src.passwords import require_login
 from api.professor_checkin_api import get_professor_sessions
 
+setup_page("Professor Check-In", gradient=False)
 sidebar()
-
-st.title("Professor Check-In")
 st.write("Select a scheduled class to generate its check-in QR code.")
 
 user = require_login()

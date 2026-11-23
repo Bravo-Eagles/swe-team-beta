@@ -16,12 +16,61 @@ def get_connection():
     return conn
 
 def init_db():
-    """Create the database file and any missing tables."""
+    """Create missing tables and migrate existing databases."""
     schema = SCHEMA_PATH.read_text()
     conn = get_connection()
+
     try:
+        scheduled_exists = conn.execute("""
+            SELECT 1 FROM sqlite_master
+            WHERE type = 'table' AND name = 'scheduled'
+        """).fetchone()
+
+        if scheduled_exists:
+            scheduled_columns = {
+                row["name"]
+                for row in conn.execute("PRAGMA table_info(scheduled)")
+            }
+
+            if "is_cancelled" not in scheduled_columns:
+                conn.execute("""
+                    ALTER TABLE scheduled
+                    ADD COLUMN is_cancelled BOOLEAN NOT NULL DEFAULT 0
+                """)
+
+        # Remove the old unrestricted unique index.
+        existing_index = conn.execute("""
+            SELECT sql FROM sqlite_master
+            WHERE type = 'index'
+              AND name = 'unique_class_meeting'
+        """).fetchone()
+
+        if existing_index:
+            index_sql = existing_index["sql"] or ""
+
+            if "WHERE IS_CANCELLED = 0" not in " ".join(
+                index_sql.upper().split()
+            ):
+                conn.execute("DROP INDEX unique_class_meeting")
+
+        # Create missing tables and the corrected index.
         conn.executescript(schema)
+
+        # Migrate older attendance tables.
+        columns = {
+            row["name"]
+            for row in conn.execute("PRAGMA table_info(attendance)")
+        }
+
+        if "attendance_status" not in columns:
+            conn.execute("""
+                ALTER TABLE attendance
+                ADD COLUMN attendance_status TEXT NOT NULL DEFAULT 'Present'
+                CHECK (attendance_status IN ('Present', 'Absent', 'Not recorded'))
+            """)
+
         conn.commit()
+
     finally:
         conn.close()
 

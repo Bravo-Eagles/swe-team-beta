@@ -60,9 +60,12 @@ CREATE TABLE IF NOT EXISTS scheduled(
     teaching_id INTEGER NOT NULL REFERENCES teaching(id),
     date DATE NOT NULL,
     start_time TIME NOT NULL,
-    end_time TIME
+    end_time TIME,
+    is_cancelled BOOLEAN NOT NULL DEFAULT 0
 );
-
+CREATE UNIQUE INDEX IF NOT EXISTS unique_class_meeting
+ON scheduled (teaching_id, date, start_time)
+WHERE is_cancelled = 0;
 -- When a student is enrolled in a course
 CREATE TABLE IF NOT EXISTS enrolled(
     teaching_id INTEGER NOT NULL REFERENCES teaching(id),
@@ -76,6 +79,8 @@ CREATE TABLE IF NOT EXISTS attendance(
     student_id INTEGER NOT NULL REFERENCES student(id),
     check_in_time DATE NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT 0,
+    attendance_status TEXT NOT NULL DEFAULT 'Present'
+        CHECK (attendance_status IN ('Present', 'Absent', 'Not recorded')),
     PRIMARY KEY (scheduled_id, student_id)
 );
 

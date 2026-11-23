@@ -3,6 +3,11 @@ from api import attendance_api
 from src.passwords import require_login
 from src.sidebar import sidebar
 from src.database import get_connection 
+from src.style import setup_page
+
+# Must run before any other Streamlit call (including require_login and sidebar)
+setup_page("Import Attendance", layout="wide", gradient=False)
+
 #require Login
 require_login()
 sidebar()
@@ -161,7 +166,7 @@ if not (bitwiseFlag & 1): # If file hasn't been uploaded
     else:
         streamlit.warning("No classes available. Please create a class first before importing attendance records")
 
-    if streamlit.button("Upload"):
+    if streamlit.button("Upload", type="primary"):
         if file is None:
             streamlit.error("Error: No upload")
             bitwiseFlag &= ~(1 | 2 | 4 | 8) # Sets 0,1,2,3 to 0
@@ -194,11 +199,11 @@ elif bitwiseFlag & (1 << 4): # Stage 1 - Select data from spreadsheet and put it
     streamlit.write("Now we need your help! Select cells in the spreadsheet. When the selection matches an option below, hit Set to lock it in.")
     streamlit.dataframe(spreadsheet, key="import_dataframe", on_select=captureDataSelection, selection_mode=["multi-cell", "multi-column", "multi-row"])
 
-    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom"):
+    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom", key="card_dates"):
         # If dateRange has been set, display it 
         streamlit.session_state["dateRangeBox"] = dateRange.to_string() if bitwiseFlag & (1 << 5) else inputDefaultText
         dateRangeBox = streamlit.text_input(label="Provide the range of cells that contain the date", key="dateRangeBox", disabled=True)
-        if streamlit.button("Set", key="setDatesButton"): # Set dateRange
+        if streamlit.button("Set", key="setDatesButton", type="primary"): # Set dateRange
             dateRange = pandas.DataFrame({
                 "rows": pandas.Series(selectionData.selection["rows"]),
                 "columns": pandas.Series(selectionData.selection["columns"]),
@@ -210,11 +215,11 @@ elif bitwiseFlag & (1 << 4): # Stage 1 - Select data from spreadsheet and put it
             dateRange = pandas.DataFrame()
             bitwiseFlag &= ~(1 << 5)
             update()
-    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom"):
+    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom", key="card_names"):
         # If nameRange has been set, display it 
         streamlit.session_state["nameRangeBox"] = nameRange.to_string() if bitwiseFlag & (1 << 6) else inputDefaultText
         nameRangeBox = streamlit.text_input(label="Provide the range of cells that contain student's names", key="nameRangeBox", disabled=True)
-        if streamlit.button("Set", key="setNamesButton"):
+        if streamlit.button("Set", key="setNamesButton", type="primary"):
             nameRange = pandas.DataFrame({
                 "rows": pandas.Series(selectionData.selection["rows"]),
                 "columns": pandas.Series(selectionData.selection["columns"]),
@@ -226,11 +231,11 @@ elif bitwiseFlag & (1 << 4): # Stage 1 - Select data from spreadsheet and put it
             nameRange = pandas.DataFrame()
             bitwiseFlag &= ~(1 << 6)
             update()
-    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom"):
+    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom", key="card_present"):
         # If presentString has been set, display it
         streamlit.session_state["presentStringBox"] = presentString.to_string() if bitwiseFlag & (1 << 7) else inputDefaultText
         presentStringBox = streamlit.text_input(label="Text that marks students as present (Expects one cell)", key="presentStringBox", disabled=True)
-        if streamlit.button("Set", key="setPresentButton"):
+        if streamlit.button("Set", key="setPresentButton", type="primary"):
             presentString = pandas.DataFrame({
                 "rows": pandas.Series(selectionData.selection["rows"]),
                 "columns": pandas.Series(selectionData.selection["columns"]),
@@ -242,11 +247,11 @@ elif bitwiseFlag & (1 << 4): # Stage 1 - Select data from spreadsheet and put it
             presentString = pandas.DataFrame()
             bitwiseFlag &= ~(1 << 7)
             update()
-    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom"):
+    with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom", key="card_absent"):
         # If absentString has been set, display it 
         streamlit.session_state["absentStringBox"] = absentString.to_string() if bitwiseFlag & (1 << 8) else inputDefaultText
         absentStringBox = streamlit.text_input(label="Text that marks students as absent (Expects one cell)", key="absentStringBox", disabled=True)
-        if streamlit.button("Set", key="setAbsentButton"):
+        if streamlit.button("Set", key="setAbsentButton", type="primary"):
             absentString = pandas.DataFrame({
                 "rows": pandas.Series(selectionData.selection["rows"]),
                 "columns": pandas.Series(selectionData.selection["columns"]),
@@ -262,7 +267,7 @@ elif bitwiseFlag & (1 << 4): # Stage 1 - Select data from spreadsheet and put it
     with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom"):
         if streamlit.button("Back"):
             back()
-        if streamlit.button("Process Data") and (bitwiseFlag & (1<<9)): 
+        if streamlit.button("Process Data", type="primary") and (bitwiseFlag & (1<<9)): 
             bitwiseFlag ^= (1 << 4) | (1 << 10) # Ends stage 1 | Start stage 2
             update()
 
@@ -380,7 +385,7 @@ elif bitwiseFlag & (1 << 10): # Stage 2 - Figure out formatting
     with streamlit.container(horizontal=True, horizontal_alignment="distribute", vertical_alignment="bottom"):
         if streamlit.button("Back"):
             back()
-        if streamlit.button("Process Data") and bitwiseFlag & (1<<11):
+        if streamlit.button("Process Data", type="primary") and bitwiseFlag & (1<<11):
             bitwiseFlag ^= (1 << 10) | (1 << 16) # Ends stage 2 | Start stage 3
             update()
 
@@ -556,7 +561,7 @@ elif bitwiseFlag & (1 << 16): # Stage 3 - Put the stuff in the database
         if streamlit.button("Back"):
             back()
     else:
-        if streamlit.button("Import more?"):
+        if streamlit.button("Import more?", type="primary"):
             back()
         streamlit.success("Import complete")
     finally:
