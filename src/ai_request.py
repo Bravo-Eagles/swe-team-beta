@@ -104,6 +104,13 @@ class AIRequest:
         
         if self.api_type == "OpenAI": 
             self.model_data = self.models_response.json()["data"][self.model]
+            self.capabilities = dict(
+                name=self.model_data["id"],
+                image_support=False,
+                instruction_support=True,
+                previous_response_support=False,
+                streaming_support=False,
+            )
             if "metadata" in self.model_data:
                 self.capabilities = dict(
                     name = self.model_data["id"],

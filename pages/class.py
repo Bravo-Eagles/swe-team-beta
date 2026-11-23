@@ -5,6 +5,9 @@ from api.courses import get_class_roster, get_teacher_id, get_teaching_section, 
 from api.attendance_api import create_scheduled_session, list_scheduled_sessions, list_students_for_session
 from datetime import date, time
 from src.sidebar import sidebar
+from api.exit_slip_api import list_teacher_responses
+from src.ai_summary import summarize_responses
+from requests import RequestException
 
 # Require teacher permissions
 user = require_role(["TEACHER"])
@@ -97,6 +100,39 @@ with st.expander("Scheduled Sessions"):
                 ],
                 hide_index=True,
             )
+
+        st.subheader("Exit Slip Responses")
+        responses = list_teacher_responses(user["id"], selected_session)
+        st.write(f"Total submissions: {len(responses)}")
+        with st.expander("Read submitted responses"):
+            for index, response in enumerate(responses, start=1):
+                st.markdown(f"**Response {index}**")
+                st.write("Question:", response["question"])
+                st.write("Answer:", response["answer"])
+
+        st.subheader("AI Summary")
+        st.caption("Generate a summary when you need it. Responses are sent to the configured AI service only when you click the button.")
+        summary_key = f"exit_slip_summary_{user['id']}_{selected_session}"
+        snapshot = tuple((r["id"], r["question"], r["answer"], r["submitted_at"]) for r in responses)
+        saved_summary = st.session_state.get(summary_key)
+        if st.button("Generate AI summary", disabled=not responses, key=f"generate_summary_{selected_session}"):
+            try:
+                with st.spinner("Summarizing student responses..."):
+                    summary = summarize_responses(responses)
+            except RequestException:
+                st.error("The AI service could not complete the request. Please try again.")
+            except (ValueError, KeyError, IndexError, TypeError):
+                st.error("Could not generate a summary. Check the server's AI configuration and try again.")
+            else:
+                saved_summary = {"text": summary, "snapshot": snapshot}
+                st.session_state[summary_key] = saved_summary
+        if saved_summary:
+            if saved_summary["snapshot"] != snapshot:
+                st.info("Responses have changed. Generate a new summary to include the latest submissions.")
+            st.markdown(saved_summary["text"])
+            st.caption("AI-generated from the submissions available when requested. Review against the original responses.")
+        elif not responses:
+            st.info("No responses have been submitted yet.")
             
                 
 

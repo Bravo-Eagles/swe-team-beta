@@ -4,6 +4,10 @@ from src.passwords import require_role
 from api.courses import create_class
 from api.courses import get_classes, get_teaching_classes, get_teacher_id, create_section
 from src.sidebar import sidebar
+from src.style import setup_page
+
+# Must run before any other Streamlit call (including require_login and sidebar)
+setup_page("Classes", gradient=False)
 
 #require Login
 user = require_role(["TEACHER"])
@@ -49,7 +53,7 @@ def create_class_modal():
     year = col2.number_input("Year", min_value=2000, max_value=2100,
                              value=date.today().year, step=1)
 
-    if st.button("Create section"):
+    if st.button("Create section", type="primary"):
         try:
             create_section(teacher_id, semester, year, class_id=chosen,
                            class_name=new_name, course_id=new_course_id)
@@ -66,12 +70,12 @@ for index, section in enumerate(sections):
   col_target = cols[index % 2]
 
   with col_target:
-    with st.container(border=True):
+    with st.container(border=True, key=f"card_section_{section['teaching_id']}"):
         st.subheader(f"{section["name"]}")
         st.write(f"{section["course_id"]}")
         st.caption(f"{section['semester']} {section['year']}")
-        if st.button("View Class", key=f"btn_{section["teaching_id"]}"):
+        if st.button("View Class", type="primary", key=f"btn_{section["teaching_id"]}"):
           st.switch_page("pages/class.py", query_params={"teachingID": f"{section["teaching_id"]}"})
 
-if(st.button("Create New Class")):
+if(st.button("Create New Class", type="primary")):
   create_class_modal()
