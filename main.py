@@ -30,7 +30,8 @@ if (ARG_Count > 1) :
 def main():
     brand_header("The All in One Check In System") # Replaces the static title and subheader
     print("Hello from swe-team-beta!")
-    streamlit.button("Logout", on_click=logout)
+    with streamlit.container(horizontal_alignment="center"):
+        streamlit.button("Logout", on_click=logout, type="primary")
 
 
 if __name__ == "__main__":

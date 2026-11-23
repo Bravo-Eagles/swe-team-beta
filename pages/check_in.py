@@ -5,6 +5,7 @@ from src.passwords import require_role
 from src.style import setup_page
 from src.passwords import require_login
 from api.checkin_api import get_checkin_details, submit_checkin
+from src.style import setup_page
 
 from src.passwords import current_user
 
@@ -29,6 +30,8 @@ if current_user() is None:
 # Allow only students
 user = require_role(["STUDENT"])
 sidebar()
+
+setup_page("Check In", layout="wide", gradient=False)
 
 st.title("Student Check-In")
 
