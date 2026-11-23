@@ -1,12 +1,19 @@
 ﻿import streamlit as st
 
-from api.exit_slip_api import QUESTION, list_student_meetings, submit_exit_slip
-from src.passwords import require_login
+import streamlit as st
+from datetime import datetime
+from src.passwords import require_role
 from src.sidebar import sidebar
+from api.exit_slip_api import QUESTION, list_student_meetings, submit_exit_slip
 
-
-user = require_login()
+# Require student permissions
+user = require_role(["STUDENT"])
 sidebar()
+
+st.title("Exit Slip")
+st.write("Submit your response to today's class question.")
+
+
 
 st.title("Exit Slip")
 st.write("Submit your response to a class meeting's question.")

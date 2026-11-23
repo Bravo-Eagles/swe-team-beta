@@ -76,3 +76,16 @@ def get_user_by_session(token_hash, curr_time):
     except sqlite3.Error as e:
             print(f"An Error Occurred: {e}")
             return None
+def get_user_role(user_id):
+    """Get the role assigned to a user in the database."""
+    query = "SELECT role FROM accounts WHERE id = ?"
+
+    try:
+        with db.get_connection() as conn:
+            row = conn.execute(query, (user_id,))
+            account = row.fetchone()
+            return account["role"] if account else None
+
+    except sqlite3.Error as e:
+        print(f"Error retrieving role: {e}")
+        return None

@@ -100,3 +100,17 @@ def logout():
         st.stop()   # let the component render and trigger its own rerun
     st.session_state.pop("logging_out", None)
     st.switch_page(LOGIN_PAGE)
+def require_role(allowed_roles):
+    """Restrict page access based on the user's database role."""
+    from api.auth_api import get_user_role
+
+    user = require_login()
+    role = get_user_role(user["id"])
+
+    if role not in allowed_roles:
+        st.error(
+            "Access denied. You do not have permission to view this page."
+        )
+        st.stop()
+
+    return user

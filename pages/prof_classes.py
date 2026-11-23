@@ -1,6 +1,6 @@
 import streamlit as st
 from datetime import datetime, date
-from src.passwords import require_login
+from src.passwords import require_role
 from api.courses import create_class
 from api.courses import get_classes, get_teaching_classes, get_teacher_id, create_section
 from src.sidebar import sidebar
@@ -10,7 +10,7 @@ from src.style import setup_page
 setup_page("Classes", gradient=False)
 
 #require Login
-user = require_login()
+user = require_role(["TEACHER"])
 sidebar()
 st.query_params.clear() #Clear query params, useful if prof goes back a page from a class
 teacher_id = get_teacher_id(user["id"])

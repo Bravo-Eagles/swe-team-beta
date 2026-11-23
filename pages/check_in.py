@@ -1,6 +1,7 @@
 import streamlit as st
 
 from src.sidebar import sidebar
+from src.passwords import require_role
 from src.style import setup_page
 from src.passwords import require_login
 from api.checkin_api import get_checkin_details, submit_checkin
@@ -17,8 +18,16 @@ from api.nfc_api import (
     record_tap,
 )
 
-# Must run before any other Streamlit call, including the early st.stop() branches below
-setup_page("Check-In")
+# Remember the class if the student needs to log in
+raw_id = st.query_params.get("scheduled_id")
+
+if current_user() is None:
+    if raw_id:
+        st.session_state["pending_checkin_id"] = str(raw_id)
+    st.switch_page("./pages/login.py")
+
+# Allow only students
+user = require_role(["STUDENT"])
 sidebar()
 
 st.title("Student Check-In")
@@ -54,13 +63,6 @@ if picc_data and cmac:
     st.query_params.clear()
 
 raw_id = st.query_params.get("scheduled_id")
-
-if current_user() is None:
-    if raw_id:
-        st.session_state["pending_checkin_id"] = str(raw_id)
-    st.switch_page("./pages/login.py")
-
-user = require_login()
 
 # NFC check-in: work out the class from the tag's professor.
 if not raw_id and "nfc_uid" in st.session_state:

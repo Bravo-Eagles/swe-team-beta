@@ -1,5 +1,5 @@
 import streamlit as st
-from src.passwords import require_login
+from src.passwords import require_role
 from api.courses import get_classes
 from api.courses import get_class_roster, get_teacher_id, get_teaching_section, search_addable_students, add_students_to_section
 from api.attendance_api import create_scheduled_session, list_scheduled_sessions, list_students_for_session
@@ -9,8 +9,8 @@ from api.exit_slip_api import list_teacher_responses
 from src.ai_summary import summarize_responses
 from requests import RequestException
 
-#Require Login
-user = require_login()
+# Require teacher permissions
+user = require_role(["TEACHER"])
 sidebar()
 
 #Ensure user is a teacher
