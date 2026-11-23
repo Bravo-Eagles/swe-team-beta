@@ -1,5 +1,6 @@
 import streamlit
 from src.passwords import handle_login, current_user, login_user
+from src.style import load_favicon
 
 # Route to dashboard, where login redirects to
 HOME_PAGE = "./main.py"
@@ -20,8 +21,11 @@ def redirect_after_login():
     streamlit.switch_page(HOME_PAGE)
 
 
-streamlit.set_page_config(initial_sidebar_state="collapsed")
-
+streamlit.set_page_config(
+    page_title="Login | CheckIn",
+    page_icon=load_favicon(),
+    initial_sidebar_state="collapsed",
+)
 if current_user():
     redirect_after_login()
 

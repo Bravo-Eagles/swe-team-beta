@@ -1,7 +1,7 @@
-
 import streamlit as st
 
 from src.sidebar import sidebar
+from src.style import setup_page
 from src.passwords import require_login
 from api.checkin_api import get_checkin_details, submit_checkin
 
@@ -17,6 +17,8 @@ from api.nfc_api import (
     record_tap,
 )
 
+# Must run before any other Streamlit call, including the early st.stop() branches below
+setup_page("Check-In")
 sidebar()
 
 st.title("Student Check-In")
@@ -88,9 +90,15 @@ if details is None:
     st.stop()
 
 st.subheader(details["class_name"])
-st.write("Course:", details["course_id"])
-st.write("Date:", details["date"])
-st.write("Start time:", details["start_time"])
+
+with st.container(border=True, key="card_checkin_details"):
+    c1, c2, c3 = st.columns(3)
+    c1.caption("Course")
+    c1.write(details["course_id"])
+    c2.caption("Date")
+    c2.write(details["date"])
+    c3.caption("Start time")
+    c3.write(details["start_time"])
 
 question = (
     "What is one thing you learned today, "
@@ -101,8 +109,8 @@ st.subheader("Exit Slip")
 st.info(question)
 
 with st.form("student_checkin_form"):
-    answer = st.text_area("Your response")
-    submitted = st.form_submit_button("Submit and Check In")
+    answer = st.text_area("Your response", height=150)
+    submitted = st.form_submit_button("Submit and Check In", type="primary")
 
 if submitted:
     if not answer.strip():
