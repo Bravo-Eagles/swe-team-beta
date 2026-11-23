@@ -8,10 +8,13 @@ from src.sidebar import sidebar
 from api.exit_slip_api import list_teacher_responses
 from src.ai_summary import summarize_responses
 from requests import RequestException
+from src.style import setup_page
 
 # Require teacher permissions
 user = require_role(["TEACHER"])
 sidebar()
+
+setup_page("Class Overview", gradient=False)
 
 #Ensure user is a teacher
 teacher_id = get_teacher_id(user["id"])
@@ -87,13 +90,13 @@ with st.expander("Scheduled Sessions"):
         except ValueError as e:
             st.error(str(e))
         else:
-            present = sum(r["is_present"] for r in students)
+            present = sum(r["check_in_time"] is not None for r in students)
             st.metric("Present", f"{present} / {len(students)}")
             st.dataframe(
                 [
                     {
                         "Student": f"{r['first_name']} {r['last_name']}",
-                        "Status": "Present" if r["is_present"] else "Absent",
+                        "Status": "Present" if r["check_in_time"] else "Absent",
                         "Check-in": r["check_in_time"] or "",
                     }
                     for r in students
@@ -104,7 +107,7 @@ with st.expander("Scheduled Sessions"):
         st.subheader("Exit Slip Responses")
         responses = list_teacher_responses(user["id"], selected_session)
         st.write(f"Total submissions: {len(responses)}")
-        with st.expander("Read submitted responses"):
+        if st.toggle("Show submitted responses", key=f"show_resp_{selected_session}"):
             for index, response in enumerate(responses, start=1):
                 st.markdown(f"**Response {index}**")
                 st.write("Question:", response["question"])

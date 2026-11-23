@@ -5,10 +5,12 @@ from datetime import datetime
 from src.passwords import require_role
 from src.sidebar import sidebar
 from api.exit_slip_api import QUESTION, list_student_meetings, submit_exit_slip
+from src.style import setup_page
 
 # Require student permissions
 user = require_role(["STUDENT"])
 sidebar()
+setup_page("Exit Slip", layout="wide", gradient=False)
 
 st.title("Exit Slip")
 st.write("Submit your response to today's class question.")
