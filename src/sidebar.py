@@ -35,9 +35,18 @@ def sidebar():
             label="Professor Check In"
         )
         st.sidebar.page_link(
+            'pages/import.py', 
+            label='Import'
+        )
+        st.sidebar.page_link(
+            'pages/data_editor.py', 
+            label='Data Editor'
+        )
+        st.sidebar.page_link(
             'pages/settings.py', 
             label='Settings'
         )
+
 
     else:
         st.sidebar.warning("Your account has no recognized role.")

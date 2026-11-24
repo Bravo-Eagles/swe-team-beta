@@ -5,7 +5,9 @@ import streamlit as st
 
 from api import attendance_api
 from src.sidebar import sidebar
+from src.style import setup_page
 
+setup_page("Data Editor", layout="wide", gradient=False)
 
 # --------------------------------------------------
 # HELPER FUNCTIONS
