@@ -2,13 +2,13 @@ import streamlit as st
 from src.passwords import require_login
 from src.sidebar import sidebar
 from src.database import get_text_size, update_text_size as save_text_size
+from src.style import setup_page
 
 # Page configuration
 st.set_page_config(
-    page_title="Settings",
     page_icon="⚙️",
-    layout="wide"
 )
+setup_page("Settings", layout="wide", gradient=False)
 
 # Require login
 user = require_login()
