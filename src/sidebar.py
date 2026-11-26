@@ -1,5 +1,5 @@
 import streamlit as st
-from src.passwords import require_login
+from src.passwords import require_login, logout
 from api.auth_api import get_user_role
 
 
@@ -50,3 +50,10 @@ def sidebar():
 
     else:
         st.sidebar.warning("Your account has no recognized role.")
+
+    # Global
+    st.sidebar.button(
+        "Logout",
+        on_click=logout,
+        type="primary"
+    )
