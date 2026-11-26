@@ -1,14 +1,16 @@
 import bcrypt
-import secrets
 import datetime
+import secrets
+import time
 import extra_streamlit_components as stx
 import streamlit as st
 from sqlite3 import Error, IntegrityError
 from api import auth_api
-import time
+from src.database import get_connection 
 
 COOKIE = "session_token"
 LOGIN_PAGE = "./pages/login.py"
+SIGNUP_PAGE = "./pages/signup.py"
 
 def hash_password(password: str) -> str:
     """Return a bcrypt hash of the password, ready to store."""
@@ -85,6 +87,14 @@ def require_login():
     user = current_user()
     if user is None:
         print("No User in require_Login()")
+        conn = get_connection() 
+        if (
+            conn.execute(
+                """
+                SELECT id FROM accounts;
+                """
+            ).fetchall() == []):
+            st.switch_page(SIGNUP_PAGE)
         st.switch_page(LOGIN_PAGE)   # stops the script and navigates
     return user
 

@@ -47,6 +47,7 @@
 
 #=============================================================================================
 import streamlit
+from src.database import get_connection
 from src.passwords import signup_user_account
 from src.style import setup_page, brand_header
 
@@ -71,4 +72,11 @@ with center:
         else:
             streamlit.error("That email is already registered.")
 
-    streamlit.page_link("./pages/login.py", label="Already have an account? Log in")
+    conn = get_connection() 
+    if (
+    conn.execute(
+        """
+        SELECT id FROM accounts;
+        """
+    ).fetchall() != []):
+        streamlit.page_link("./pages/login.py", label="Already have an account? Log in")
