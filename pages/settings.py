@@ -1,4 +1,6 @@
 import streamlit as st
+from api.auth_api import get_user_role
+from src.database import get_text_size, get_connection, update_text_size as save_text_size
 from src.passwords import require_login
 from src.sidebar import sidebar
 from src.database import get_text_size, update_text_size as save_text_size
@@ -12,6 +14,12 @@ setup_page("Settings", layout="wide", gradient=False)
 
 # Require login
 user = require_login()
+
+# Get the logged-in user's account ID
+account_id = user["id"]
+role = get_user_role(account_id)
+conn = get_connection()
+admin_status: bool = True if conn.execute("SELECT * FROM admin WHERE id = ?", (account_id,)) else False
 sidebar()
 
 # Page title
@@ -37,8 +45,7 @@ font_size_values = {
     "Large": 24
 }
 
-# Get the logged-in user's account ID
-account_id = user["id"]
+
 
 # Load the saved preference when switching accounts
 if st.session_state.get("settings_account_id") != account_id:
@@ -107,3 +114,105 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+if (admin_status):
+    st.divider()
+    st.subheader("Global AI setup")
+
+    aiProviderBox = st.selectbox(label = "Pick an AI provider", options = ["OpenAI", "Ollama"])
+    aiUrlInput = st.text_input(label="Enter API url here", key="aiUrl")
+    aiKeyInput = st.text_input(label="Enter API key here", key="aiKeyInput")
+    if st.button("Set", key="setAI", type="primary"):
+        aiProvider = conn.execute(
+            """
+            SELECT key FROM global_settings
+            WHERE key = 'ai_provider'
+            """
+        ).fetchone()
+        aiUrl = conn.execute(
+            """
+            SELECT key FROM global_settings
+            WHERE key = 'ai_endpoint'
+            """
+        ).fetchone()
+        aiKey = conn.execute(
+            """
+            SELECT key FROM global_settings
+            WHERE key = 'ai_key'
+            """
+        ).fetchone()
+
+        try:
+            if (aiProvider is None): 
+                conn.execute(
+                    """
+                    INSERT INTO global_settings (key, value)
+                    VALUES ('ai_provider', ?)
+                    """,
+                    (aiProviderBox,)
+                )
+            else:
+                conn.execute(
+                    """
+                    UPDATE global_settings
+                    SET value = ?
+                    WHERE key = 'ai_provider'
+                    """,
+                    (aiProviderBox,)
+                )
+        except:
+            conn.rollback()
+            st.error("Failed to set AI provider")
+        else:
+            conn.commit()
+            st.success("AI provider set")
+
+        try:
+            if (aiUrl is None): 
+                conn.execute(
+                    """
+                    INSERT INTO global_settings (key, value)
+                    VALUES ('ai_endpoint', ?)
+                    """,
+                    (aiUrlInput,)
+                )
+            else:
+                conn.execute(
+                    """
+                    UPDATE global_settings
+                    SET value = ?
+                    WHERE key = 'ai_endpoint'
+                    """,
+                    (aiUrlInput,)
+                )
+        except:
+            conn.rollback()
+            st.error("Failed to set AI url")
+        else:
+            conn.commit()
+            st.success("AI url set")
+
+        try:
+            if (aiKey is None): 
+                conn.execute(
+                    """
+                    INSERT INTO global_settings (key, value)
+                    VALUES ('ai_key', ?)
+                    """,
+                    (aiKeyInput,)
+                )
+            else:
+                conn.execute(
+                    """
+                    UPDATE global_settings
+                    SET value = ?
+                    WHERE key = 'ai_key'
+                    """,
+                    (aiKeyInput,)
+                )
+        except:
+            conn.rollback()
+            st.error("Failed to set AI key")
+        else:
+            conn.commit()
+            st.success("AI key set")

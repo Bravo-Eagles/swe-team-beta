@@ -42,16 +42,15 @@ def sidebar():
             'pages/data_editor.py', 
             label='Data Editor'
         )
-        st.sidebar.page_link(
-            'pages/settings.py', 
-            label='Settings'
-        )
-
 
     else:
         st.sidebar.warning("Your account has no recognized role.")
 
     # Global
+    st.sidebar.page_link(
+        'pages/settings.py', 
+        label='Settings'
+    )
     st.sidebar.button(
         "Logout",
         on_click=logout,
