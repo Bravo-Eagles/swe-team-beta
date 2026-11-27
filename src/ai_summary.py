@@ -4,6 +4,7 @@ import json
 import os
 
 from src.ai_request import AIRequest
+from src.database import get_connection 
 
 
 INSTRUCTIONS = """Summarize these student exit slips for their teacher.
@@ -15,19 +16,41 @@ identify students, grade them, or assume the responses represent the whole class
 Clearly distinguish suggested teaching actions from reported student feedback."""
 
 
-def summarize_responses(responses, api_key=None, api_url=None):
+def summarize_responses(responses):
     """Make an AI request only when explicitly called by the teacher's button."""
+    conn = get_connection()
+    aiProvider = conn.execute(
+        """
+        SELECT value FROM global_settings
+        WHERE key = 'ai_provider'
+        """
+    ).fetchone()["value"]
+    aiUrl = conn.execute(
+        """
+        SELECT value FROM global_settings
+        WHERE key = 'ai_endpoint'
+        """
+    ).fetchone()["value"]
+    aiKey = conn.execute(
+        """
+        SELECT value FROM global_settings
+        WHERE key = 'ai_key'
+        """
+    ).fetchone()["value"]
+
     entries = [
         {"question": row["question"], "answer": row["answer"].strip()}
         for row in responses if row["answer"].strip()
     ]
     if not entries:
         raise ValueError("No responses have been submitted yet.")
-    key = (api_key or os.environ.get("AI_API_KEY", "")).strip()
-    if not key:
-        raise ValueError("Set AI_API_KEY on the server to enable AI summaries.")
-    url = api_url or os.environ.get("AI_API_URL") or "https://rocky.cs.kent.edu/v1"
-    client = AIRequest(key, url=url)
+    if not aiKey:
+        raise ValueError("Set AI_KEY on the server to enable AI summaries.")
+    if not aiUrl:
+        raise ValueError("Set AI_URL on the server to enable AI summaries.")
+    if not aiProvider:
+        raise ValueError("Set AI_PROVIDER on the server to enable AI summaries.")
+    client = AIRequest(key=aiKey, url=aiUrl, debug=False, error=True, api_type=aiProvider)
     client.timeout = 60
     client.max_output = 800
     result = client.send(
