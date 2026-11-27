@@ -47,10 +47,12 @@
 
 #=============================================================================================
 import streamlit
+from src.database import get_connection
 from src.passwords import signup_user_account
 from src.style import setup_page, brand_header
 
 setup_page("Sign Up | CheckIn", hide_sidebar=True)
+conn = get_connection() 
 
 _, center, _ = streamlit.columns([1, 2, 1])
 
@@ -67,8 +69,27 @@ with center:
         if reg_password != conf_password:
             streamlit.error("Passwords do not match.")
         elif signup_user_account(user_email, reg_password):
+            if (
+                conn.execute(
+                    """
+                    SELECT * FROM admin;
+                    """
+            ).fetchall() == []):
+                conn.execute(
+                    """
+                    INSERT INTO admin (id) SELECT id FROM accounts WHERE email = ?
+                    """,
+                    (user_email,)
+                )
+                conn.commit()
             streamlit.success("Account created. You can log in now.")
         else:
             streamlit.error("That email is already registered.")
 
-    streamlit.page_link("./pages/login.py", label="Already have an account? Log in")
+    if (
+    conn.execute(
+        """
+        SELECT id FROM accounts;
+        """
+    ).fetchall() != []):
+        streamlit.page_link("./pages/login.py", label="Already have an account? Log in")

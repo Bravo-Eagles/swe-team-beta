@@ -11,6 +11,11 @@ CREATE TABLE IF NOT EXISTS accounts(
     role VARCHAR(255) NOT NULL DEFAULT('STUDENT')
 );
 
+CREATE TABLE IF NOT EXISTS admin(
+    id INTEGER PRIMARY KEY,
+    FOREIGN KEY (id) REFERENCES accounts(id)
+);
+
 --Login Sessions
 CREATE TABLE IF NOT EXISTS sessions(
     token_hash TEXT PRIMARY KEY,

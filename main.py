@@ -1,5 +1,5 @@
 import streamlit, sys
-from src.passwords import require_login, logout
+from src.passwords import require_login
 from src.sidebar import sidebar
 from src.style import setup_page, brand_header
 
@@ -29,9 +29,6 @@ if (ARG_Count > 1) :
 
 def main():
     brand_header("The All in One Check In System") # Replaces the static title and subheader
-    print("Hello from swe-team-beta!")
-    with streamlit.container(horizontal_alignment="center"):
-        streamlit.button("Logout", on_click=logout, type="primary")
 
 
 if __name__ == "__main__":

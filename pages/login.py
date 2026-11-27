@@ -163,6 +163,7 @@ with center:
         password = streamlit.text_input(label="Password", type="password")
         submitted = streamlit.form_submit_button("Login", type="primary")
 
+# Checks for valid password (Not currently)
     if submitted:
         if not email or not password:
             streamlit.error("Please enter your email and password.")
